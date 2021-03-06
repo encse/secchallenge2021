@@ -1,0 +1,14 @@
+Who needs one time pad when you can do multiple times pad? With extra randomness!
+
+ c  d   2   1   {            }
+L1  L2  L3  L4  L5 L6 ..... L20
+K4  K5  K6  K7  K8 K9 ..... K23
+
+
+L1 x K10  -> K10
+L1 x K20  -> K20
+...
+K4 x L8   -> L8
+
+
+
