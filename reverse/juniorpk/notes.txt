@@ -1,0 +1,42 @@
+break *0x00005555555750c7
+set {int}0x7fffffffdca8=0x13371337
+awatch *0x7fffffffdca8
+x/x 0x7fffffffdca8
+
+
+ASLR kikapcsolva:
+
+Dump of assembler code from 0x5555555750c7 to 0x5555555750db:
+=> 0x00005555555750c7:  cmpw   $0x1337,0x558(%rsp)
+   0x00005555555750d1:  jmpq   0x555555c27578
+   0x00005555555750d6:  pop    %rsi
+   0x00005555555750d7:  (bad)  
+   0x00005555555750d8:  rex.WB (bad) 
+   0x00005555555750da:  and    $0x929029f2,%eax
+End of assembler dump.
+(gdb) p $rsp+0x558
+$1 = (void *) 0x7fffffffdca8
+(gdb) 
+
+
+
+
+gdb) disass 0x00005555555761e9 - 10, +20
+Dump of assembler code from 0x5555555761df to 0x5555555761f3:
+   0x00005555555761df:  xlat   %ds:(%rbx)
+   0x00005555555761e0:  pop    %rsp
+   0x00005555555761e1:  movzwl 0x55a(%rsp),%eax
+=> 0x00005555555761e9:  jmpq   0x555555c27709
+   0x00005555555761ee:  pop    %rbx
+   0x00005555555761ef:  or     -0x42dd7a23(%rdi),%ecx
+End of assembler dump.
+(gdb) p $eax
+$2 = 4919
+(gdb) p $rax
+$3 = 4919
+(gdb) p/x $rax
+$4 = 0x1337
+(gdb) x/x $rsp+0x55a
+0x7fffffffdcaa: 0x01001337
+
+
