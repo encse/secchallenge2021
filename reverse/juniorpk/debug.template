@@ -1,0 +1,32 @@
+set environment LD_PRELOAD ./usbmock.so
+break *0x0000555555c27096
+run < PIPE
+delete 1
+rwatch *ADDRESS
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
+conti
