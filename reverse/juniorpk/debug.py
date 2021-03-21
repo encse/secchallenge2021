@@ -69,6 +69,9 @@ class Statement:
         self.line =  line
         self.orig_line = orig_line
 
+    def __str__(self):
+        return self.orig_line
+
 
 def parse_statement(statement, line):
     parts = tokenize(statement) 
@@ -187,7 +190,8 @@ def step(conn, addr):
 
             if (
                 # '%xmm' in statement.args or
-                '%rip' in statement.args
+            #    '%rip' in statement.args
+               'pushfq' in statement.op
             ):
                 hulyeseg = True
 
@@ -202,12 +206,16 @@ def step(conn, addr):
         if hulyeseg:
             # sys.stdout.write(f'\raddr: {hex(addr)}')
             # sys.stdout.flush()
+
+            i = 0
             for statement in block:
+                i+=1
                 # print(statement.line)
                
                 if statement.fun:
                     res = []
                     res.append(Statement(None, None, None, None, None, f'   return from {statement.fun}'))
+                    print('xxx')
                     addr = get_proc_info(conn)['stack_top']
                     hulyeseg = False
                     break
@@ -219,6 +227,8 @@ def step(conn, addr):
                     if statement.op == 'retq':
                         hulyeseg = False
                         res = []
+                    # for k in range(i):
+                    #     print(f'### {block[k]}')
                     run_to(conn, addr, statement.rip)
                     stepi(conn)
                     addr = get_ip(conn)
@@ -387,6 +397,38 @@ def solve():
     # +++    0x0000555555c2cbd8:    mov    %rcx,%rbp
     # +++    0x0000555555c2cbdb:    jmpq   0x555555a96374
 
+
+    addr = 0x55555557214b
+    addr = 0x0000555555c2cca9
+#     # addr = 0x0000555555c2d519
+
+#     => 0x000055555558d136:    mov    %r12,%rbx
+#    0x000055555558d139:    jmpq   0x555555c2d519
+# ['0x555555c2d519']
+
+#    0x0000555555c2d519:    mov    0x18(%rsp),%rbp
+#    0x0000555555c2d51e:    mov    0x10(%rsp),%r12
+#    0x0000555555c2d523:    je     0x555555ade826
+#    0x0000555555c2d529:    jmpq   0x555555ae080d
+# ['0x555555ade826', '0x555555ae080d']
+
+# >1
+# => 0x0000555555583429:    mov    $0x1,%eax
+#    0x000055555558342e:    jmpq   0x555555c288c8
+# ['0x555555c288c8']
+
+#    0x0000555555c288c8:    jmpq   0x5555557904e2
+# ['0x5555557904e2']
+
+# => 0x000055555558d1b6:    lea    -0x349f5(%rip),%rsi        # 0x5555555587c8
+#    0x000055555558d1bd:    jmpq   0x555555c2d580
+# ['0x555555c2d580']
+
+#    0x0000555555c2d580:    mov    $0x1e,%edx
+#    0x0000555555c2d585:    mov    %rax,%rdi
+#    0x0000555555c2d588:    syscall 
+#    0x0000555555c2d58a:    jmpq   0x555555ae2f9f
+# ['0x555555ae2f9f']
 
     conn = get_conn(addr)
 
