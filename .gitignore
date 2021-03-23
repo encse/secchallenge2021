@@ -8,3 +8,7 @@ reverse/excel/bin
 reverse/excel/obj
 reverse/xenia-laurencia-maria/bin
 reverse/xenia-laurencia-maria/obj
+crysys.rep
+*.i64
+x.x
+crysys.gpr
