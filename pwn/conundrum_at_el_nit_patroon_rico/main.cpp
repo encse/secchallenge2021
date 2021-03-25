@@ -63,7 +63,15 @@ int main() {
     //paddr[(0xf * chunkSize) / 8 + 1] = 0x8888888888888888;
 
 
-    paddr[(0x10 * chunkSize) / 8 + 0] = 0x401e18;
+    paddr[(0x10 * chunkSize) / 8 + 0] = 0x0000000000401e18;
+    paddr[(0x10 * chunkSize) / 8 + 1] = 0x00000000004010f6;
+    paddr[(0x10 * chunkSize) / 8 + 2] = 0x0000000000401106;
+    paddr[(0x10 * chunkSize) / 8 + 3] = 0x0000000000401116;
+    paddr[(0x10 * chunkSize) / 8 + 4] = 0x0000000000401126;
+    paddr[(0x10 * chunkSize) / 8 + 5] = 0x0000000000401136;
+    paddr[(0x10 * chunkSize) / 8 + 6] = 0x0000000000401146;
+    paddr[(0x10 * chunkSize) / 8 + 7] = 0x0000000000401156;
+
     /*
         [+ME] TraceHub loading config.
         [+ME] TraceHub successfully initialized.
