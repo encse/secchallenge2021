@@ -13,6 +13,7 @@ send:
 	nc challenges.crysys.hu 5010 < x.x
 
 send-local:
+	set -x
 	echo `stat -c%s input` > x.x
 	cat input >> x.x
-	./me < x.x
+	./me < x.x 2> /dev/null
