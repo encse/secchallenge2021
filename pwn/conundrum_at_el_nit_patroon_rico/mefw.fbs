@@ -16,6 +16,12 @@ table FwHeader {
     fwVerMinor:short = 1;
     fwVerSubminor:short = 1;
     files:[File];
+    lofasz1: uint64 = 0x8888;
+    lofasz2: uint64 = 0x8888;
+    lofasz3: uint64 = 0x8888;
+    lofasz4: uint64 = 0x8888;
+    lofasz5: uint64 = 0x8888;
+    lofasz6: uint64 = 0x8888;
 }
 
 file_identifier "MEFW";

@@ -1,4 +1,5 @@
-all: main.cpp mefw_generated.h
+all: main.cpp mefw.fbs
+	./flatbuffers/flatc -c ./mefw.fbs
 	g++ -Iflatbuffers/include  main.cpp -o generate_input
 
 vec: vec.cpp

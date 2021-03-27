@@ -164,7 +164,13 @@ struct FwHeader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FWVERMAJOR = 4,
     VT_FWVERMINOR = 6,
     VT_FWVERSUBMINOR = 8,
-    VT_FILES = 10
+    VT_FILES = 10,
+    VT_LOFASZ1 = 12,
+    VT_LOFASZ2 = 14,
+    VT_LOFASZ3 = 16,
+    VT_LOFASZ4 = 18,
+    VT_LOFASZ5 = 20,
+    VT_LOFASZ6 = 22
   };
   int16_t fwVerMajor() const {
     return GetField<int16_t>(VT_FWVERMAJOR, 1);
@@ -178,6 +184,24 @@ struct FwHeader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<me::File>> *files() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<me::File>> *>(VT_FILES);
   }
+  uint64_t lofasz1() const {
+    return GetField<uint64_t>(VT_LOFASZ1, 34952ULL);
+  }
+  uint64_t lofasz2() const {
+    return GetField<uint64_t>(VT_LOFASZ2, 34952ULL);
+  }
+  uint64_t lofasz3() const {
+    return GetField<uint64_t>(VT_LOFASZ3, 34952ULL);
+  }
+  uint64_t lofasz4() const {
+    return GetField<uint64_t>(VT_LOFASZ4, 34952ULL);
+  }
+  uint64_t lofasz5() const {
+    return GetField<uint64_t>(VT_LOFASZ5, 34952ULL);
+  }
+  uint64_t lofasz6() const {
+    return GetField<uint64_t>(VT_LOFASZ6, 34952ULL);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int16_t>(verifier, VT_FWVERMAJOR) &&
@@ -186,6 +210,12 @@ struct FwHeader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_FILES) &&
            verifier.VerifyVector(files()) &&
            verifier.VerifyVectorOfTables(files()) &&
+           VerifyField<uint64_t>(verifier, VT_LOFASZ1) &&
+           VerifyField<uint64_t>(verifier, VT_LOFASZ2) &&
+           VerifyField<uint64_t>(verifier, VT_LOFASZ3) &&
+           VerifyField<uint64_t>(verifier, VT_LOFASZ4) &&
+           VerifyField<uint64_t>(verifier, VT_LOFASZ5) &&
+           VerifyField<uint64_t>(verifier, VT_LOFASZ6) &&
            verifier.EndTable();
   }
 };
@@ -206,6 +236,24 @@ struct FwHeaderBuilder {
   void add_files(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<me::File>>> files) {
     fbb_.AddOffset(FwHeader::VT_FILES, files);
   }
+  void add_lofasz1(uint64_t lofasz1) {
+    fbb_.AddElement<uint64_t>(FwHeader::VT_LOFASZ1, lofasz1, 34952ULL);
+  }
+  void add_lofasz2(uint64_t lofasz2) {
+    fbb_.AddElement<uint64_t>(FwHeader::VT_LOFASZ2, lofasz2, 34952ULL);
+  }
+  void add_lofasz3(uint64_t lofasz3) {
+    fbb_.AddElement<uint64_t>(FwHeader::VT_LOFASZ3, lofasz3, 34952ULL);
+  }
+  void add_lofasz4(uint64_t lofasz4) {
+    fbb_.AddElement<uint64_t>(FwHeader::VT_LOFASZ4, lofasz4, 34952ULL);
+  }
+  void add_lofasz5(uint64_t lofasz5) {
+    fbb_.AddElement<uint64_t>(FwHeader::VT_LOFASZ5, lofasz5, 34952ULL);
+  }
+  void add_lofasz6(uint64_t lofasz6) {
+    fbb_.AddElement<uint64_t>(FwHeader::VT_LOFASZ6, lofasz6, 34952ULL);
+  }
   explicit FwHeaderBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -222,8 +270,20 @@ inline flatbuffers::Offset<FwHeader> CreateFwHeader(
     int16_t fwVerMajor = 1,
     int16_t fwVerMinor = 1,
     int16_t fwVerSubminor = 1,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<me::File>>> files = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<me::File>>> files = 0,
+    uint64_t lofasz1 = 34952ULL,
+    uint64_t lofasz2 = 34952ULL,
+    uint64_t lofasz3 = 34952ULL,
+    uint64_t lofasz4 = 34952ULL,
+    uint64_t lofasz5 = 34952ULL,
+    uint64_t lofasz6 = 34952ULL) {
   FwHeaderBuilder builder_(_fbb);
+  builder_.add_lofasz6(lofasz6);
+  builder_.add_lofasz5(lofasz5);
+  builder_.add_lofasz4(lofasz4);
+  builder_.add_lofasz3(lofasz3);
+  builder_.add_lofasz2(lofasz2);
+  builder_.add_lofasz1(lofasz1);
   builder_.add_files(files);
   builder_.add_fwVerSubminor(fwVerSubminor);
   builder_.add_fwVerMinor(fwVerMinor);
@@ -236,14 +296,26 @@ inline flatbuffers::Offset<FwHeader> CreateFwHeaderDirect(
     int16_t fwVerMajor = 1,
     int16_t fwVerMinor = 1,
     int16_t fwVerSubminor = 1,
-    const std::vector<flatbuffers::Offset<me::File>> *files = nullptr) {
+    const std::vector<flatbuffers::Offset<me::File>> *files = nullptr,
+    uint64_t lofasz1 = 34952ULL,
+    uint64_t lofasz2 = 34952ULL,
+    uint64_t lofasz3 = 34952ULL,
+    uint64_t lofasz4 = 34952ULL,
+    uint64_t lofasz5 = 34952ULL,
+    uint64_t lofasz6 = 34952ULL) {
   auto files__ = files ? _fbb.CreateVector<flatbuffers::Offset<me::File>>(*files) : 0;
   return me::CreateFwHeader(
       _fbb,
       fwVerMajor,
       fwVerMinor,
       fwVerSubminor,
-      files__);
+      files__,
+      lofasz1,
+      lofasz2,
+      lofasz3,
+      lofasz4,
+      lofasz5,
+      lofasz6);
 }
 
 inline const me::FwHeader *GetFwHeader(const void *buf) {
