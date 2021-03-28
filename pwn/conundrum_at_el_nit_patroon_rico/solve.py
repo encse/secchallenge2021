@@ -2,10 +2,6 @@
 import os
 import pwn
 import sys
-import flatbuffers
-import Chunk
-import FwHeader
-import File
 import random
 
 pwn.context.log_level = 'error'
