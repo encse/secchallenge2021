@@ -1,3 +1,5 @@
+itt egy fasza execve hivas:
+
    0x00005555555633a3:  xor    %eax,%eax
    0x00005555555633a5:  add    $0x3b,%al
    0x00005555555633a7:  syscall 

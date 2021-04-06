@@ -12,3 +12,4 @@ crysys.rep
 *.i64
 x.x
 crysys.gpr
+pwn/rougelike/lib
