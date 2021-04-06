@@ -1,5 +1,133 @@
+   0x00005555555633a3:  xor    %eax,%eax
+   0x00005555555633a5:  add    $0x3b,%al
+   0x00005555555633a7:  syscall 
+   0x00005555555633a9:  nop
+   0x00005555555633aa:  nop
+   0x00005555555633ab:  nop
+   0x00005555555633ac:  nop
+   0x00005555555633ad:  nopl   (%rax)
+   0x00005555555633b0 <roguelike::calculate_damage+0>:  sub    $0x28,%rsp
+   0x00005555555633b4 <roguelike::calculate_damage+4>:  mov    %edi,0x1c(%rsp)
+
+
+
+itt van egy jol kinezo memcpy hivas 
+
+Breakpoint 1, roguelike::prompt_and_read (prompt=...) at /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs:86
+86      /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs: No such file or directory.
+(gdb) disass roguelike::main - 0x111b20 + 0x113740
+Dump of assembler code for function core::ptr::write:
+   0x0000555555567740 <+0>:     sub    $0x18,%rsp
+   0x0000555555567744 <+4>:     mov    %rdi,0x10(%rsp)
+   0x0000555555567749 <+9>:     mov    $0x2c,%edx
+   0x000055555556774e <+14>:    callq  0x555555560058 <memcpy@plt>
+   0x0000555555567753 <+19>:    add    $0x18,%rsp
+   0x0000555555567757 <+23>:    retq   
+End of assembler dump.
+
+
+----------------------------------------------------------------------------------------
+
+
+olyan mintha a $rsp+180-at masolgatna be az enemybe:
+
+(gdb) 
+0x7fffffffd200: 0x74202c616e69694d
+(gdb) 
+0x7fffffffd208: 0x6563726f73206568
+(gdb) 
+0x7fffffffd210: 0x0000000073736572
+(gdb) 
+0x7fffffffd218: 0x0000001400000064
+(gdb) 
+0x7fffffffd220: 0x555636200000002a
+(gdb) finish
+Run till exit from #0  0x00005555555622d4 in roguelike::generate_enemy (gender=0)
+    at /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs:282
+roguelike::fight (player=0x7fffffffd9e0) at /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs:317
+317     in /home/marci/core/secchallenge21/secchallenge21-pwn-3/roguelike/src/main.rs
+Value returned is $10 = 
+    roguelike::Enemy {name: [77, 105, 105, 110, 97, 44, 32, 116, 104, 101, 32, 115, 111, 114, 99, 101, 114, 101, 115, 115], _padding: 0, max_hit_points: 100, weapon_strength: 20, armor: 42, attack: 0x555555563620 <roguelike::sorceress_attack>}
+(gdb) p/x 0x7fffffffd200 - $rsp
+Argument to arithmetic operation not a number or boolean.
+(gdb) p 0x7fffffffd200 - $rsp
+Argument to arithmetic operation not a number or boolean.
+(gdb) p/x  $rsp
+$11 = 0x7fffffffd380
+(gdb) p/x 0x7fffffffd380 - 0x7fffffffd200
+$12 = 0x180
+
+
+
+
+
+        system      hp    weapon armor      name
+0x7fb75d432720 0xe0a755fe 0x559c 0xe271cc20 \xef\xbf\xbdq\xef\xbf\xbdU\x00\x00\x00\xef\xbf\xbd?\xef\xbf\xbd\xef\xbf\xbd\x7f\x00\x00\x00\xef\xbf\xbd?\xef\xbf\xbd\n
+0x7effc1cda720 0xe5b1f5fe 0x55e4 0xe718fc20 \xef\xbf\xbd\x18\xef\xbf\xbd\xef\xbf\xbdU\x00\x00\x00\xef\xbf\xbdNc\xef\xbf\xbd\x7f\x00\x00\x00\xef\xbf\xbdNc
+0x7f67a5802720 0x79b765fe 0x55fc 0x7ae8fc20 \xef\xbf\xbd\xef\xbf\xbdz\xef\xbf\xbdU\x00\x00\x00\xef\xbf\xbdGL\xef\xbf\xbd\x7f\x00\x00\x00\xef\xbf\xbdGL
+
+
+
+
+
+------------------------------------------------------------------------------
+
+
+amikor djinn nelkul megyunk az arenaba:n
+
+b"Your enemy is called  ,'a\xef\xbf\xbdU\x00\x00\x000\xef\xbf\xbdC\xef\xbf\xbd\x7f\x00\x00\x00@\xef\xbf\xbdC\n"
+b'Maximum hit points: 1620985342\n'
+b'Weapon strength: 21933\n'
+b'Armor: 1629957152\n'
+b'\n'
+b'It is your turn. Choose one:\n'
+b'1: Attack\n'
+b'2: Defend (increase your armor by 10 for one turn)\n'
+b'3: Drink healing potion\n'
+b'4: Throw poison at enemy\n'
+
+21933 = 0x55ad
+1620985342 = 0x609e45fe
+(gdb) x/xg 0x55ad609e45fe
+0x55ad609e45fe <alloc::alloc::dealloc+78>:      0x0f2e66c338c48348
+
+
+0x7fffffffd5a0: 0xdeadbeefdeadbeef
+(gdb) 
+0x7fffffffd5a8: 0xdeadbeefdeadbeef
+(gdb) 
+0x7fffffffd5b0: 0xdeadbeefdeadbeef
+(gdb) 
+0x7fffffffd5b8: 0xdeadbeefdeadbeef
+(gdb) 
+0x7fffffffd5c0: 0xdeadbeefdeadbeef
+(gdb) 
+0x7fffffffd5c8: 0x00000000deadbeef
+(gdb) 
+0x7fffffffd5d0: 0xdeadbeef3c2b1a09
+
+
+6666666666666666564eacaa66666666666666666666666610888888
+6666666666666666deadbeef66666666666666666666666610888888
+
+66666666666666661234567866666666666666666666666610888888
+0x00000001      3c2b1a09
+ 
+66666666666666662222222266666666666666666666666610888888
+0x00000001      08888888
+
+66666666666666661111111166666666666666666666666610888888
+0x00000001      11111111
+
+66666666666666663333333366666666666666666666666610888888
+0x00000001      19999999
+
+66666666666666664444444466666666666666666666666610888888
+0x00000001      22222222
+------------------------------------------------------------------------------
+
 egy fasza kis save state:
-66666666666666666666666666666666666666666666666610888888
+66666666666666661111111166666666666666666666666610888888
 
 ----------------------------------------------------------------------------
 
@@ -43,7 +171,12 @@ break *0x000055555556296c
 
 ----------------------------------------------------------------------------
 
+src: 0x7fffffffd358
+count: 0x1008
 
+attack utani sor: 0x0000555555562973
+
+0x7fffffffd5a0
 
 
 
