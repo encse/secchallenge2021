@@ -5,6 +5,8 @@ from base64 import b64encode, b64decode
 import pwn
 from itertools import cycle
 
+from secrets_from_export import get_secrets
+
 
 client_rsa_key = RSA.generate(2048)
 
@@ -66,11 +68,13 @@ def encrypt_and_send(conn, msg):
     conn.sendline(msg)
 
 def xor(data, key):
-    data = data.encode('utf-8')
-    key = key.encode('utf-8')
-    return bytes(''.join([chr(a^b) for a, b in zip(data, cycle(key))]), encoding='utf-8')
+    if type(data) == str:
+        data = data.encode('utf-8')
 
+    if type(key) == str:
+        key = key.encode('utf-8')
 
+    return bytes([a^b for a, b in zip(data, cycle(key))])
 
 def encrypt(conn, cypher, data):
     recv_and_decrypt(conn, 4)
@@ -104,6 +108,28 @@ conn.recvline()
 encrypt_and_send(conn, 'apple')
 conn.recvline_contains('Very nice')
 
+secrets = get_secrets()
 
 
-print(encrypt(conn, 8, '\x00'*80))
+flags = []
+flags.append(encrypt(conn, 8, '\x00'*80))
+
+for v in secrets.values():
+    if 'flag' in v[0]:
+        flags.append(v[0])
+
+
+a = b64decode(secrets['Salsa20'][1])
+p = ' ' * 200
+b = encrypt(conn, 1, p)
+
+flags.append(xor(xor(a,b),p))
+
+print(flags)
+
+
+
+
+
+
+
