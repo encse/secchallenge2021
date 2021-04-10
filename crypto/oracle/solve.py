@@ -1,11 +1,13 @@
 from Crypto.Random import get_random_bytes
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, ChaCha20, ARC4, Salsa20, AES, Blowfish
+from Crypto.Util.number import bytes_to_long
 from base64 import b64encode, b64decode
+from Crypto.Util.Padding import pad, unpad
 import pwn
 from itertools import cycle
 
-from secrets_from_export import get_secrets
+from secrets_from_export import get_secrets, Cipher
 
 
 client_rsa_key = RSA.generate(2048)
@@ -76,9 +78,22 @@ def xor(data, key):
 
     return bytes([a^b for a, b in zip(data, cycle(key))])
 
-def encrypt(conn, cypher, data):
+def encrypt(conn, cipher, data):
     recv_and_decrypt(conn, 4)
     encrypt_and_send(conn, 'e')
+    print(recv_and_decrypt(conn, 15))
+    encrypt_and_send(conn, str(cipher))
+    print(recv_and_decrypt(conn, 1))
+
+    encrypt_and_send(conn, data)
+    print(recv_and_decrypt(conn, 1))
+    b64_enc_msg = conn.recvline()
+    enc_msg = b64decode(b64_enc_msg)
+    return server_chacha_cipher.decrypt(enc_msg)
+
+def decrypt(conn, cipher, data):
+    recv_and_decrypt(conn, 4)
+    encrypt_and_send(conn, 'd')
     print(recv_and_decrypt(conn, 15))
     encrypt_and_send(conn, str(cypher))
     print(recv_and_decrypt(conn, 1))
@@ -108,28 +123,104 @@ conn.recvline()
 encrypt_and_send(conn, 'apple')
 conn.recvline_contains('Very nice')
 
-secrets = get_secrets()
+def solve():
+    secrets = get_secrets()
 
 
-flags = []
-flags.append(encrypt(conn, 8, '\x00'*80))
+    flags = []
+    flags.append(encrypt(conn, 8, '\x00'*80))
 
-for v in secrets.values():
-    if 'flag' in v[0]:
-        flags.append(v[0])
-
-
-a = b64decode(secrets['Salsa20'][1])
-p = ' ' * 200
-b = encrypt(conn, 1, p)
-
-flags.append(xor(xor(a,b),p))
-
-print(flags)
+    for v in secrets.values():
+        if 'flag' in v[0]:
+            flags.append(v[0])
 
 
+    a = b64decode(secrets[Cipher.Salsa20][1])
+    p = ' ' * 200
+    b = encrypt(conn, 1, p)
+
+    flag = xor(a,xor(b,p))
+    flags.append(flag)
+
+
+    a = b64decode(secrets[Cipher.ARC4][1])
+    p = '1' * 200
+    b = encrypt(conn, 0, p)
+    flag = xor(a,xor(b,p))
+    flags.append(flag)
+
+
+
+    for flag in flags:
+        print(flag)
+
+
+
+
+def select_menu(conn, menu):
+    recv_and_decrypt(conn, 4)
+    encrypt_and_send(conn,  menu)
+
+def select_submenu(conn, submenu):
+    print(recv_and_decrypt(conn, 15))
+    encrypt_and_send(conn, submenu)
+    print(recv_and_decrypt(conn, 1))
+
+def solve_rsa():
+
+    ciphertext = encrypt(conn, 6, '')
+    lng = bytes_to_long(ciphertext)
+    print(lng)
 
 
 
 
 
+def solve_blowfish_ecb(conn):
+
+    plaintext = pad(b'x'*0, Blowfish.block_size)
+    blowfish_ctr_cipher = Blowfish.new('_KEYS.Blowfish_ECB'.encode('utf-8'), Blowfish.MODE_ECB)
+    ciphertext = blowfish_ctr_cipher.encrypt(plaintext)
+    plaintext = unpad(blowfish_ctr_cipher.decrypt(ciphertext), Blowfish.block_size)
+
+    select_menu(conn, 'd')
+    select_submenu(conn, '4')
+    
+
+    encrypt_and_send(conn, 'x'*8)
+    conn.interactive()
+    # print(recv_and_decrypt(conn, 1))
+    # b64_enc_msg = conn.recvline()
+    # enc_msg = b64decode(b64_enc_msg)
+    # return server_chacha_cipher.decrypt(enc_msg)
+
+def solve_salsa20(conn):
+    secrets = get_secrets()
+    a = b64decode(secrets[Cipher.Salsa20][1])
+    # a = encrypt(conn, 1, '0'*200)
+    p = ' ' * 200
+    b = encrypt(conn, 1, p)
+    flag = xor(a,xor(b,p))
+    print(flag)
+
+
+def solve_aes_ctr(conn):
+    secrets = get_secrets()
+    a = b64decode(secrets[Cipher.AES_CTR][1])
+    p = ' ' * 200
+    b = encrypt(conn, 3, p)
+    flag = xor(a,xor(b,p))
+    print(flag)
+
+
+def foo(conn):
+    secrets = get_secrets()
+    for i in range(9):
+        secret = secrets[i]
+        if len(secret) == 2:
+            a = b64decode(secret[1])
+            p = ' ' * 200
+            b = encrypt(conn, i, p)
+            flag = xor(a,xor(b,p))
+            print(flag)
+foo(conn)

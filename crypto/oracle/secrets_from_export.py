@@ -7,6 +7,20 @@ import json
 import pwn
 from itertools import cycle
 
+from enum import Enum
+
+class Cipher(Enum):
+    ARC4 = 0,
+    Salsa20=1, 
+    AES_CBC=2,
+    AES_CTR=3,
+    Blowfish_ECB=4,
+    Blowfish_EAX=5,
+    PKCS_OAEP_RSA_2048=6,
+    El_Gamal=7,
+    XOR=8
+
+
 def get_chacha_cipher(key, nonce, client_rsa_key):
     enc_chacha_key = b64decode(key)
     client_rsa = PKCS1_OAEP.new(client_rsa_key)
@@ -78,7 +92,9 @@ def get_secrets():
         'XOR'
     ]
 
-    secrets = dict()
+    secrets = []
+    for cipher_index in range(9):
+        secrets.append([])
 
     i = 54
     decrypt(client_chacha_cipher, lines[i])
@@ -100,7 +116,7 @@ def get_secrets():
                 plaintext = decrypt(client_chacha_cipher, lines[i]).decode('utf-8')
                 i += 2
 
-            secrets[ciphers[cipher_id]] = [plaintext]
+            secrets[cipher_id].append(plaintext)
         elif menu == b'd':
             i += 15
             cipher_id = int(decrypt(client_chacha_cipher, lines[i]).decode('utf-8'))
@@ -108,14 +124,14 @@ def get_secrets():
             if cipher_id == 7:
                 i += 1
                 ciphertext = decrypt(client_chacha_cipher, lines[i])
-                secrets[ciphers[cipher_id]].append(b64encode(ciphertext).decode('utf-8'))
+                secrets[cipher_id].append(b64encode(ciphertext).decode('utf-8'))
                 i += 1
                 ciphertext = decrypt(client_chacha_cipher, lines[i])
-                secrets[ciphers[cipher_id]].append(b64encode(ciphertext).decode('utf-8'))
+                secrets[cipher_id].append(b64encode(ciphertext).decode('utf-8'))
             else:
                 i += 1
                 ciphertext = decrypt(client_chacha_cipher, lines[i])
-                secrets[ciphers[cipher_id]].append(b64encode(ciphertext).decode('utf-8'))
+                secrets[cipher_id].append(b64encode(ciphertext).decode('utf-8'))
             i += 2
             m = decrypt(client_chacha_cipher, lines[i])
             i += 1
