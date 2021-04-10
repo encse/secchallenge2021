@@ -197,6 +197,20 @@ def solve(conn):
 
 
 def solve_el_gamal(conn):
+    # a fixed y is used for the enryption round, although it should be randomly selected.
+    # we don't know any parameters of el gamal, but we know that
+    #   get_c2(msg) = (s * msg) % q
+    # from this: 
+    #   s = get_c2(1) 
+    # we can also compute q with incrementing a probe value (r)
+    # when r*s != get_c2(r) the mod operation triggered and we found 
+    #   q = r * s - rs
+    # now compute:
+    #   s_inv = pow(s, -1, q), 
+    # and decrypt the secret with: 
+    #   flag = (s_inv * secret) % q
+    
+
     secrets = get_secrets()
     secret = secrets[Cipher.El_Gamal.value]
 
@@ -205,7 +219,10 @@ def solve_el_gamal(conn):
         select_submenu(conn, str(Cipher.El_Gamal.value))
         encrypt_and_send(conn, int.to_bytes(r, 64, 'big'))
         recv_and_decrypt(conn)
+        
+        # this is constant
         c1 = int.from_bytes(recv_and_decrypt(conn), 'big')
+
         c2 = int.from_bytes(recv_and_decrypt(conn), 'big')
 
         return c2
