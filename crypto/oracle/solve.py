@@ -11,6 +11,14 @@ import re
 from secrets_from_export import get_secrets, Cipher
 
 
+# flag{1f_u_kn0w_th3_str34m...}
+# flag{str34m_c1ph3rs_pls}
+# flag{n0w_y0u_c4n_s33_0nly_my_m3ss4g3s}
+# flag{x0r_1s_4lw4ys_34sy_t0_cr4ck_ch4ng3_my_m1nd}
+# flag{y0u_h4v3_4_f3w_fl4gs_l3ft_but_gg}
+# flag{th3y_us3d_3l_g4m4l_wr0ng}
+# flag{m4yb3_th1s_w4s_th3_h4rd3st}
+
 client_rsa_key = RSA.generate(2048)
 
 
@@ -197,7 +205,7 @@ def solve(conn):
 
 
 def solve_el_gamal(conn):
-    # a fixed y is used for the enryption round, although it should be randomly selected.
+    # a fixed y is used for the enryption, although it should be randomly selected.
     # we don't know any parameters of el gamal, but we know that
     #   get_c2(msg) = (s * msg) % q
     # from this: 
@@ -243,5 +251,97 @@ def solve_el_gamal(conn):
 
         r += 1
 
+
+def solve_rsa(conn):
+    rsa_key = RSA.generate(2048)
+    rsa_cipher = PKCS1_OAEP.new(rsa_key)
+    ciphertext = rsa_cipher.encrypt(b'')
+    print(ciphertext)
+
+def solve_aes_cbc(conn):
+
+    secrets = get_secrets()
+    secret = secrets[Cipher.AES_CBC.value][1]
+
+
+    cipherfake=[0] * 16
+    plaintext = [0] * 16
+    current = 0
+    message=""
+
+
+    BLOCK_SIZE = 16
+    number_of_blocks = int(len(secret)/BLOCK_SIZE)
+    blocks = [[]] * number_of_blocks
+    for i in (range(number_of_blocks)):
+        blocks[i] = secret[i * BLOCK_SIZE: (i + 1) * BLOCK_SIZE]
+
+    for z in range(len(blocks)-1):  
+        for itera in range (1,17):
+            for v in range(256):
+                cipherfake[-itera] = v
+
+                select_menu(conn, 'd')
+                select_submenu(conn, str(Cipher.AES_CBC.value))
+                encrypt_and_send(conn, bytes(cipherfake)+blocks[z+1])
+                x = recv_and_decrypt(conn)
+                if b'API' in x:
+                    current=itera
+                    plaintext[-itera]= v^itera^blocks[z][-itera]
+                    encrypt_and_send(conn, 'invalid API key')
+                    recv_and_decrypt(conn)
+                    print(chr(plaintext[-itera]))
+                    break
+
+            for w in range(1,current+1):
+                cipherfake[-w] = plaintext[-w]^itera+1^blocks[z][-w] 
+
+
+        for i in range(16):
+            message += chr(int(plaintext[i]))
+
+    # secret_len = len(secret)
+    # ciphertext = list(bytes(secret))
+    # plaintext = [0]*len(secret)
+    # d = [0]*len(secret)
+
+    # for k in range(0, secret_len):
+    #     ciphertext = list(bytes(secret))
+    #     for i in range(secret_len - 16 - k, secret_len - 16):
+    #         ciphertext[i] = plaintext[i+16] ^ (k + 1)
+
+    #     for guess in range(256):
+    #         ciphertext[secret_len - 16] = guess
+    #         select_menu(conn, 'd')
+    #         select_submenu(conn, str(Cipher.AES_CBC.value))
+    #         encrypt_and_send(conn, bytes(ciphertext))
+    #         x = recv_and_decrypt(conn)
+    #         if b'API' in x:
+    #             d[secret_len - k - 1] = (k + 1) ^ guess
+    #             plaintext[secret_len - k - 1] = d[secret_len - k - 1] ^ secret[secret_len - 16 - k]
+    #             encrypt_and_send(conn, 'invalid API key')
+    #             recv_and_decrypt(conn)
+    #             break
+            
+
+
+    #         # for itera in range (1,17): #the length of each block is 16. I start by one because than I use its in a counter
+    #         # for v in range(256):
+    #         #     cipherfake[-itera]=v
+    #         #     if is_padding_ok(bytes(cipherfake)+blocks[z+1]): #the idea is that I put in 'is_padding_ok' the cipherfake(array of all 0) plus the last block
+    #         #                                                      #if the function return true I found the value
+    #         #         current=itera
+    #         #         plaintext[-itera]= v^itera^blocks[z][-itera]
+
+    #         # for w in range(1,current+1):
+    #         #     cipherfake[-w] = plaintext[-w]^itera+1^blocks[z][-w] #for decode the second byte I must set the previous bytes with 'itera+1'
+
+
+
+    check_flag(message)
+    
+
 solve(conn)
 solve_el_gamal(conn)
+solve_aes_cbc(conn)
+
