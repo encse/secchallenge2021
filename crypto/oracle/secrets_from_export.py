@@ -9,6 +9,7 @@ from itertools import cycle
 
 from enum import Enum
 
+    
 class Cipher(Enum):
     ARC4 = 0,
     Salsa20=1, 
@@ -109,11 +110,11 @@ def get_secrets():
             i += 1
             if cipher_id == 7:
                 i += 1
-                plaintext = decrypt(client_chacha_cipher, lines[i]).decode('utf-8')
+                plaintext = decrypt(client_chacha_cipher, lines[i])
                 i += 3
             else:
                 i += 1
-                plaintext = decrypt(client_chacha_cipher, lines[i]).decode('utf-8')
+                plaintext = decrypt(client_chacha_cipher, lines[i])
                 i += 2
 
             secrets[cipher_id].append(plaintext)
@@ -124,14 +125,14 @@ def get_secrets():
             if cipher_id == 7:
                 i += 1
                 ciphertext = decrypt(client_chacha_cipher, lines[i])
-                secrets[cipher_id].append(b64encode(ciphertext).decode('utf-8'))
+                secrets[cipher_id].append(ciphertext)
                 i += 1
                 ciphertext = decrypt(client_chacha_cipher, lines[i])
-                secrets[cipher_id].append(b64encode(ciphertext).decode('utf-8'))
+                secrets[cipher_id].append(ciphertext)
             else:
                 i += 1
                 ciphertext = decrypt(client_chacha_cipher, lines[i])
-                secrets[cipher_id].append(b64encode(ciphertext).decode('utf-8'))
+                secrets[cipher_id].append(ciphertext)
             i += 2
             m = decrypt(client_chacha_cipher, lines[i])
             i += 1

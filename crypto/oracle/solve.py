@@ -78,31 +78,6 @@ def xor(data, key):
 
     return bytes([a^b for a, b in zip(data, cycle(key))])
 
-def encrypt(conn, cipher, data):
-    recv_and_decrypt(conn, 4)
-    encrypt_and_send(conn, 'e')
-    print(recv_and_decrypt(conn, 15))
-    encrypt_and_send(conn, str(cipher))
-    print(recv_and_decrypt(conn, 1))
-
-    encrypt_and_send(conn, data)
-    print(recv_and_decrypt(conn, 1))
-    b64_enc_msg = conn.recvline()
-    enc_msg = b64decode(b64_enc_msg)
-    return server_chacha_cipher.decrypt(enc_msg)
-
-def decrypt(conn, cipher, data):
-    recv_and_decrypt(conn, 4)
-    encrypt_and_send(conn, 'd')
-    print(recv_and_decrypt(conn, 15))
-    encrypt_and_send(conn, str(cypher))
-    print(recv_and_decrypt(conn, 1))
-
-    encrypt_and_send(conn, data)
-    print(recv_and_decrypt(conn, 1))
-    b64_enc_msg = conn.recvline()
-    enc_msg = b64decode(b64_enc_msg)
-    return server_chacha_cipher.decrypt(enc_msg)
 
 
 
@@ -122,105 +97,54 @@ assert recv_and_decrypt(conn) == 'apple'
 conn.recvline()
 encrypt_and_send(conn, 'apple')
 conn.recvline_contains('Very nice')
-
-def solve():
-    secrets = get_secrets()
-
-
-    flags = []
-    flags.append(encrypt(conn, 8, '\x00'*80))
-
-    for v in secrets.values():
-        if 'flag' in v[0]:
-            flags.append(v[0])
-
-
-    a = b64decode(secrets[Cipher.Salsa20][1])
-    p = ' ' * 200
-    b = encrypt(conn, 1, p)
-
-    flag = xor(a,xor(b,p))
-    flags.append(flag)
-
-
-    a = b64decode(secrets[Cipher.ARC4][1])
-    p = '1' * 200
-    b = encrypt(conn, 0, p)
-    flag = xor(a,xor(b,p))
-    flags.append(flag)
-
-
-
-    for flag in flags:
-        print(flag)
-
-
-
-
 def select_menu(conn, menu):
     recv_and_decrypt(conn, 4)
     encrypt_and_send(conn,  menu)
 
 def select_submenu(conn, submenu):
-    print(recv_and_decrypt(conn, 15))
+    recv_and_decrypt(conn, 15)
     encrypt_and_send(conn, submenu)
-    print(recv_and_decrypt(conn, 1))
+    recv_and_decrypt(conn, 1)
 
-def solve_rsa():
+def encrypt(conn, cipher_index, data):
+    select_menu(conn, 'e')
+    select_submenu(conn, str(cipher_index))
 
-    ciphertext = encrypt(conn, 6, '')
-    lng = bytes_to_long(ciphertext)
-    print(lng)
+    encrypt_and_send(conn, data)
+    recv_and_decrypt(conn, 1)
+    b64_enc_msg = conn.recvline()
+    enc_msg = b64decode(b64_enc_msg)
+    return server_chacha_cipher.decrypt(enc_msg)
 
-
-
-
-
-def solve_blowfish_ecb(conn):
-
-    plaintext = pad(b'x'*0, Blowfish.block_size)
-    blowfish_ctr_cipher = Blowfish.new('_KEYS.Blowfish_ECB'.encode('utf-8'), Blowfish.MODE_ECB)
-    ciphertext = blowfish_ctr_cipher.encrypt(plaintext)
-    plaintext = unpad(blowfish_ctr_cipher.decrypt(ciphertext), Blowfish.block_size)
-
+def decrypt(conn, cipher, data):
     select_menu(conn, 'd')
-    select_submenu(conn, '4')
-    
+    select_submenu(conn, str(cipher_index))
 
-    encrypt_and_send(conn, 'x'*8)
-    conn.interactive()
-    # print(recv_and_decrypt(conn, 1))
-    # b64_enc_msg = conn.recvline()
-    # enc_msg = b64decode(b64_enc_msg)
-    # return server_chacha_cipher.decrypt(enc_msg)
+    encrypt_and_send(conn, data)
+    recv_and_decrypt(conn, 1)
+    b64_enc_msg = conn.recvline()
+    enc_msg = b64decode(b64_enc_msg)
+    return server_chacha_cipher.decrypt(enc_msg)
 
-def solve_salsa20(conn):
+def solve(conn):
     secrets = get_secrets()
-    a = b64decode(secrets[Cipher.Salsa20][1])
-    # a = encrypt(conn, 1, '0'*200)
-    p = ' ' * 200
-    b = encrypt(conn, 1, p)
-    flag = xor(a,xor(b,p))
-    print(flag)
-
-
-def solve_aes_ctr(conn):
-    secrets = get_secrets()
-    a = b64decode(secrets[Cipher.AES_CTR][1])
-    p = ' ' * 200
-    b = encrypt(conn, 3, p)
-    flag = xor(a,xor(b,p))
-    print(flag)
-
-
-def foo(conn):
-    secrets = get_secrets()
-    for i in range(9):
+    for i in range(len(secrets)):
         secret = secrets[i]
+        for flag in secret:
+            if b'flag' in flag:
+                print(f'{i}, {flag}')
+
         if len(secret) == 2:
-            a = b64decode(secret[1])
-            p = ' ' * 200
+            a = secret[1]
+            p = '\x00' * 200
             b = encrypt(conn, i, p)
             flag = xor(a,xor(b,p))
-            print(flag)
-foo(conn)
+
+            if b'flag' in flag:
+                print(f'{i}, {flag}')
+
+            flag = encrypt(conn, i, '\x00'*80)
+            if b'flag' in flag:
+                print(f'{i}, {flag}')
+
+solve(conn)
