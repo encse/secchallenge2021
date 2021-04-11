@@ -1,6 +1,6 @@
 # Manual for the apocalypse
-![](https://img.shields.io/badge/Stopping the apocalypse-gray)
-![](https://img.shields.io/badge/part 2-gray)
+![](https://img.shields.io/badge/Stopping%20the%20apocalypse-gray)
+![](https://img.shields.io/badge/part%202-gray)
 ![](https://img.shields.io/badge/easy-gray)
 
 ACME Inc? Anti-apocalypse machines? 

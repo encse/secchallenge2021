@@ -1,6 +1,6 @@
 # A safe place
-![](https://img.shields.io/badge/Stopping the apocalypse-gray)
-![](https://img.shields.io/badge/part 3-gray)
+![](https://img.shields.io/badge/Stopping%20the%20apocalypse-gray)
+![](https://img.shields.io/badge/part%203-gray)
 ![](https://img.shields.io/badge/medium-gray)
 
 V8? What did they mean by leaving V8 behind on the ACME servers? Perhaps the war boys deleted the manual? They must have a copy of it! Wait a minute... I remember that Joe has a little home made safe in his room. Maybe its in there?

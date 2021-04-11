@@ -1,6 +1,6 @@
 # SQpLosIon
-![](https://img.shields.io/badge/Stopping the apocalypse-gray)
-![](https://img.shields.io/badge/part 4-gray)
+![](https://img.shields.io/badge/Stopping%20the%20apocalypse-gray)
+![](https://img.shields.io/badge/part%204-gray)
 ![](https://img.shields.io/badge/easy-gray)
 
 A manual? Coordinates?

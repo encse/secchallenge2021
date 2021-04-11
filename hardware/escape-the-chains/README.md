@@ -1,6 +1,6 @@
 # Escape the chains
-![](https://img.shields.io/badge/Stopping the apocalypse-gray)
-![](https://img.shields.io/badge/part 1-gray)
+![](https://img.shields.io/badge/Stopping%20the%20apocalypse-gray)
+![](https://img.shields.io/badge/part%201-gray)
 ![](https://img.shields.io/badge/easy-gray)
 
 As you wake up, the first thing you notice is a headache.

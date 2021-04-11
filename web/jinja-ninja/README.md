@@ -1,6 +1,6 @@
 # Jinja ninja
-![](https://img.shields.io/badge/Road to Valhalla-gray)
-![](https://img.shields.io/badge/part 2-gray)
+![](https://img.shields.io/badge/Road%20to%20Valhalla-gray)
+![](https://img.shields.io/badge/part%202-gray)
 ![](https://img.shields.io/badge/hard-gray)
 
 In `part 1` of `Road to Valhalla`, you managed to capture another drawing, with a note on it.

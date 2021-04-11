@@ -1,6 +1,6 @@
 # Crystal from the past
-![](https://img.shields.io/badge/Road to Valhalla-gray)
-![](https://img.shields.io/badge/part 1-gray)
+![](https://img.shields.io/badge/Road%20to%20Valhalla-gray)
+![](https://img.shields.io/badge/part%201-gray)
 ![](https://img.shields.io/badge/medium-gray)
 
 ```
