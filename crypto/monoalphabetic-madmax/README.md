@@ -4,3 +4,7 @@
 You love it, you hate it, it doesn't matter this is monoalphabetic.
 
 *author: Suma*
+
+## Inputs
+- [enc.txt](input/enc.txt)
+

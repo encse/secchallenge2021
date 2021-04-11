@@ -6,3 +6,7 @@ Welcome to our printing service c0pydump! It is a highly secure application. Can
 `nc challenges.crysys.hu 5006`
 
 *author: tcs*
+
+## Inputs
+- [c0pydump.tar.gz](input/c0pydump.tar.gz)
+

@@ -8,3 +8,7 @@ TBD
 *Also note: For this challenge, you'll have only 100 attempt to find the flag, so don't guess too much!*
 
 *author: kapi*
+
+## Inputs
+- [finalfinalversionforrealthistime](input/finalfinalversionforrealthistime)
+

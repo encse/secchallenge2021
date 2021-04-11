@@ -8,3 +8,7 @@
 You've arrived at the gates of Valhalla. Unfortunately, the gates are closed. There is a control board with a bunch of switches next to the door, and a plaque above saying `Only the worthy shall enter the gates of Valhalla`. There is a circuit engraved on the plaque. We’ve attached it as a picture to this challenge. Can you open the gates of Valhalla?
 
 *author: Csf3r3ncz1*
+
+## Inputs
+- [Gates_of_Valhalla.png](input/Gates_of_Valhalla.png)
+

@@ -6,3 +6,7 @@ A freshly downloaded flag-dispenser from The Pirate Bay, the only thing you need
 **All jokes aside the executable is NOT malicious, however Windows Defender or other AVs might pop an alert.**
 
 *author: chronos*
+
+## Inputs
+- [xXx_free_flagz_by_m1lfbANGER42069_RU_xXx.exe](input/xXx_free_flagz_by_m1lfbANGER42069_RU_xXx.exe)
+

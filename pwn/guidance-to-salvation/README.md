@@ -8,3 +8,7 @@ You have to go through several labyrinths to find salvation. Or there might be a
 *Hint: look for the `unsafe` keyword.*
 
 *author: nemarci*
+
+## Inputs
+- [guidance_to_salvation.tar.zst](input/guidance_to_salvation.tar.zst)
+

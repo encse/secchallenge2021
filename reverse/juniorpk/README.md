@@ -22,3 +22,7 @@
 *Note: The flag should be submitted in ALL CAPS, like so: `cd21{4LLC4PS}`!*
 
 *author: Sun G*
+
+## Inputs
+- [activation](input/activation)
+

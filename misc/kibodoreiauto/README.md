@@ -8,3 +8,7 @@ He is a bit of a weeb, but you know he doesn't actually speak Japanese.
 What could this mean on his phone?
 
 *author: kapi*
+
+## Inputs
+- [screenshot.jpg](input/screenshot.jpg)
+

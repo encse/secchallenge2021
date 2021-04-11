@@ -18,3 +18,9 @@ Company headquarters, *El Nit Patroon Rico*:
 `nc challenges.crysys.hu 5010`
 
 *author: Sun G*
+
+
+## Inputs
+- [me](input/me)
+- [mefw.fbs](input/mefw.fbs)
+

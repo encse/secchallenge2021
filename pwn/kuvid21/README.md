@@ -8,3 +8,7 @@ The KUPAC Virus is SPREADING!!! We're losing valuable chunks every second. Can y
 *P.S.: If you stumble upon another flag on the seashore, send it to @tcs on Discord for some additional claps!*
 
 *author: tcs*
+
+## Inputs
+- [kuvid21.tar.gz](input/kuvid21.tar.gz)
+

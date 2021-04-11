@@ -18,3 +18,8 @@ You managed to get a pcap of one of his drawing. He starts every session by cali
 Your task is to recover the picture he drew.
 
 *author: Csf3r3ncz1*
+
+## Inputs
+- [calibration.pcap](input/calibration.pcap)
+- [challenge.pcap](input/challenge.pcap)
+

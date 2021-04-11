@@ -18,3 +18,7 @@
 **[J]** Alright, it's my time to shine then, good work Bill.
 
 *author: Sun G*
+
+## Inputs
+- [yarr](input/yarr)
+

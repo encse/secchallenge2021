@@ -4,3 +4,7 @@
 (╯°□°）╯︵ ┻━┻
 
 *author: tk*
+
+## Inputs
+- [smiley](input/smiley)
+

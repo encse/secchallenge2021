@@ -6,3 +6,8 @@ You have successfully captured the communication between a Raspberry Pi and some
 *Note: You shouldn't encounter corrupted files, we have had problems unpacking with [jefferson](https://github.com/sviehb/jefferson), so if you run into problems using it, you should just try some other tool or method!*
 
 *author: kapi*
+
+## Inputs
+- [everything.sal](input/everything.sal)
+- [chipsetup.jpg](input/chipsetup.jpg)
+

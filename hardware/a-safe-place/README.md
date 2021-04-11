@@ -14,3 +14,7 @@ https://a-safe-place.secchallenge.crysys.hu
 ***The webpage shall be only used for code verification and flag retrieval. Please do not try to brute force the code via the webpage, you'll not succeed***
 
 *author: Csf3r3ncz1*
+
+## Inputs
+- [safe_challenge.sal](input/safe_challenge.sal)
+

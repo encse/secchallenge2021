@@ -6,3 +6,8 @@ Your friend Ben has become obsessed with a new horoscope software. Saying its tr
 `nc challenges.crysys.hu 5005`
 
 *author: Suma*
+
+## Inputs
+- [horoscopes.txt](input/horoscopes.txt)
+- [chall.js](input/chall.js)
+

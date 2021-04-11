@@ -16,3 +16,9 @@ My website: https://oracle.secchallenge.crysys.hu
 *Fix: It was not possible to extract one secret using the original version, the server is updated, check `oracle-fixed.py`!*
 
 *author: tk*
+
+## Inputs
+- [capture.pcapng](input/capture.pcapng)
+- [oracle.py](input/oracle.py)
+- [oracle-fixed.py](input/oracle-fixed.py)
+
