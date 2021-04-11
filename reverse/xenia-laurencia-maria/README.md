@@ -12,4 +12,4 @@ SHA-1: *5b6b24504cc57eff076a91df3af007027b093ccf*
 *author: tcs*
 
 ## Inputs
-- [Book.xlsm](https://github.com/encse/secchallenge2021/releases/download/v0.1/Book1.xlsm)
+- [Book1.xlsm](https://github.com/encse/secchallenge2021/releases/download/v0.1/Book1.xlsm)
