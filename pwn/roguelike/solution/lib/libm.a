@@ -1,0 +1,4 @@
+/* GNU ld script
+*/
+OUTPUT_FORMAT(elf64-x86-64)
+GROUP ( /home/encse/projects/glibc-2.33/build/install/lib/libm-2.33.a /home/encse/projects/glibc-2.33/build/install/lib/libmvec.a )
