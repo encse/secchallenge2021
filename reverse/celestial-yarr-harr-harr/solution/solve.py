@@ -1,21 +1,9 @@
+import os
+
 import blindspin
 import sys
+from pyfiglet import Figlet
 from xtermcolor import colorize
-
-
-def header():
-    print("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿")
-    print("⣿⣿                                                                                                ⣿⣿")
-    print("⣿⣿   _____    __        __  _      __  __  __               __ __               __ __             ⣿⣿")
-    print("⣿⣿  / ___/__ / /__ ___ / /_(_)__ _/ /  \ \/ /__ _________  / // /__ _________  / // /__ _________ ⣿⣿")
-    print("⣿⣿ / /__/ -_) / -_|_-</ __/ / _ `/ /    \  / _ `/ __/ __/ / _  / _ `/ __/ __/ / _  / _ `/ __/ __/ ⣿⣿")
-    print("⣿⣿ \___/\__/_/\__/___/\__/_/\_,_/_/     /_/\_,_/_/ /_/   /_//_/\_,_/_/ /_/   /_//_/\_,_/_/ /_/    ⣿⣿")
-    print("⣿⣿                                                                                                ⣿⣿")
-    print("⣿⣿    Solver for the 'Celestial Yarr Harr Harr' challenge                                         ⣿⣿")
-    print("⣿⣿    https://secchallenge.crysys.hu/challenges#Celestial%20Yarr%20Harr%20Harr-11                 ⣿⣿")
-    print("⣿⣿                                                                                                ⣿⣿")
-    print("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿")
-    print("")
 
 
 def get_flag(data):
@@ -39,15 +27,16 @@ def get_flag(data):
 
 
 def main():
-    header()
-    data = open('../input/yarr', "rb").read()
+    print(Figlet(font="thin", width=200).renderText("Celestial yarr harr harr"))
 
-    sys.stdout.write('Your flag is: ')
+    data = open(os.path.join(os.path.dirname(__file__), '../input/yarr'), "rb").read()
+
+    sys.stdout.write('🔍 Searching for key ')
     with blindspin.spinner():
         res = get_flag(data)
 
-    print(colorize(res, ansi=2))
-    print()
+
+    print('\n\n🏁 Your flag is: ' + colorize(res, ansi=2))
 
 
 main()

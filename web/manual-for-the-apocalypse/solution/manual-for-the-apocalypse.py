@@ -31,7 +31,7 @@ def shell():
 
 
 def solve():
-    print(Figlet(width=200).renderText("Manual for the apocalypse"))
+    print(Figlet(font="thin", width=200).renderText("Manual for the apocalypse"))
 
     url_base = 'https://manual-for-the-apocalypse.secchallenge.crysys.hu/'
     print(f'Using base url: ' + url_base)
@@ -45,7 +45,7 @@ def solve():
 
         print(f'👉 Found flag location, downloading from {flag_url}')
         flag = requests.get(flag_url).text
-        print('\n💣 Your flag is: ' + colorize(flag, ansi=2))
+        print('\n🏁 Your flag is: ' + colorize(flag, ansi=2))
     else:
         print("Couldn't find flag")
 
