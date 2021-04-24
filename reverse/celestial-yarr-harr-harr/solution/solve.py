@@ -1,26 +1,27 @@
 import blindspin
 import sys
+from xtermcolor import colorize
 
-print("##################################################################################################")
-print("#                                                                                                #")
-print("#   _____    __        __  _      __  __  __               __ __               __ __             #")
-print("#  / ___/__ / /__ ___ / /_(_)__ _/ /  \ \/ /__ _________  / // /__ _________  / // /__ _________ #")
-print("# / /__/ -_) / -_|_-</ __/ / _ `/ /    \  / _ `/ __/ __/ / _  / _ `/ __/ __/ / _  / _ `/ __/ __/ #")
-print("# \___/\__/_/\__/___/\__/_/\_,_/_/     /_/\_,_/_/ /_/   /_//_/\_,_/_/ /_/   /_//_/\_,_/_/ /_/    #")
-print("#                                                                                                #")
-print("#    Solver for the 'Celestial Yarr Harr Harr' challenge                                         #")
-print("#    https://secchallenge.crysys.hu/challenges#Celestial%20Yarr%20Harr%20Harr-11                 #")
-print("#                                                                                                #")
-print("##################################################################################################")
-print("")
 
-data = open('../input/yarr', "rb").read()
+def header():
+    print("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿")
+    print("⣿⣿                                                                                                ⣿⣿")
+    print("⣿⣿   _____    __        __  _      __  __  __               __ __               __ __             ⣿⣿")
+    print("⣿⣿  / ___/__ / /__ ___ / /_(_)__ _/ /  \ \/ /__ _________  / // /__ _________  / // /__ _________ ⣿⣿")
+    print("⣿⣿ / /__/ -_) / -_|_-</ __/ / _ `/ /    \  / _ `/ __/ __/ / _  / _ `/ __/ __/ / _  / _ `/ __/ __/ ⣿⣿")
+    print("⣿⣿ \___/\__/_/\__/___/\__/_/\_,_/_/     /_/\_,_/_/ /_/   /_//_/\_,_/_/ /_/   /_//_/\_,_/_/ /_/    ⣿⣿")
+    print("⣿⣿                                                                                                ⣿⣿")
+    print("⣿⣿    Solver for the 'Celestial Yarr Harr Harr' challenge                                         ⣿⣿")
+    print("⣿⣿    https://secchallenge.crysys.hu/challenges#Celestial%20Yarr%20Harr%20Harr-11                 ⣿⣿")
+    print("⣿⣿                                                                                                ⣿⣿")
+    print("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿")
+    print("")
 
-pattern = b'cd21{'
-pattern_len = len(pattern)
 
-sys.stdout.write('Searching for key ')
-with blindspin.spinner():
+def get_flag(data):
+    pattern = b'cd21{'
+    pattern_len = len(pattern)
+
     for data_offset in range(len(data) - pattern_len):
         xors = [data[data_offset + i] ^ pattern[i] for i in range(pattern_len)]
         key = xors[0]
@@ -32,5 +33,21 @@ with blindspin.spinner():
                 i += 1
 
             res = res.replace("#", "")
-            print("\r" + res)
-            break
+            return res
+
+    return ''
+
+
+def main():
+    header()
+    data = open('../input/yarr', "rb").read()
+
+    sys.stdout.write('Your flag is: ')
+    with blindspin.spinner():
+        res = get_flag(data)
+
+    print(colorize(res, ansi=2))
+    print()
+
+
+main()
