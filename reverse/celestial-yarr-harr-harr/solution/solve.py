@@ -1,33 +1,5 @@
-
-import re
-
-def solve(i, data):
-    q = ''
-
-    for ch in data:
-        q += chr(ch ^ i)
-
-    m = re.search(r'cd21{[^}]*}', q)
-    if m:
-        print()
-        print(m.group(0))
-        return True
-    return False
-
-
-def findFlag(data):
-    for i in range(0, 256):
-        print(f'\rxor with {i}', end='')
-
-        q = []
-        for ch in data:
-            if len(q) == 5:
-                if q[0] == 'c' and q[1] == 'd' and q[2] == '2' and q[3] == '1' and q[4] == '{':
-                    if solve(i, data):
-                        return
-                q.pop(0)
-            q.append(chr(ch ^ i))
-
+import blindspin
+import sys
 
 print("##################################################################################################")
 print("#                                                                                                #")
@@ -40,7 +12,25 @@ print("#    Solver for the 'Celestial Yarr Harr Harr' challenge                 
 print("#    https://secchallenge.crysys.hu/challenges#Celestial%20Yarr%20Harr%20Harr-11                 #")
 print("#                                                                                                #")
 print("##################################################################################################")
+print("")
 
+data = open('../input/yarr', "rb").read()
 
-data = open('yarr.gba', "rb").read()
-findFlag(data)
+pattern = b'cd21{'
+pattern_len = len(pattern)
+
+sys.stdout.write('Searching for key ')
+with blindspin.spinner():
+    for data_offset in range(len(data) - pattern_len):
+        xors = [data[data_offset + i] ^ pattern[i] for i in range(pattern_len)]
+        key = xors[0]
+        if all([xor == key for xor in xors]):
+            res = ''
+            i = 0
+            while not res.endswith('}'):
+                res += chr(data[data_offset + i] ^ key)
+                i += 1
+
+            res = res.replace("#", "")
+            print("\r" + res)
+            break
