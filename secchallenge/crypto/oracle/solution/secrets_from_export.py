@@ -1,25 +1,21 @@
-from Crypto.Random import get_random_bytes
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP, ChaCha20, ARC4, Salsa20, AES, Blowfish
-from Crypto.Util.number import inverse
-from base64 import b64encode, b64decode
-import json
-import pwn
-from itertools import cycle
-
+from base64 import b64decode
 from enum import Enum
 
-    
+from Crypto.Cipher import PKCS1_OAEP, ChaCha20
+from Crypto.PublicKey import RSA
+from Crypto.Util.number import inverse
+
+
 class Cipher(Enum):
     ARC4 = 0
-    Salsa20=1 
-    AES_CBC=2
-    AES_CTR=3
-    Blowfish_ECB=4
-    Blowfish_EAX=5
-    PKCS_OAEP_RSA_2048=6
-    El_Gamal=7
-    XOR=8
+    Salsa20 = 1
+    AES_CBC = 2
+    AES_CTR = 3
+    Blowfish_ECB = 4
+    Blowfish_EAX = 5
+    PKCS_OAEP_RSA_2048 = 6
+    El_Gamal = 7
+    XOR = 8
 
 
 def get_chacha_cipher(key, nonce, client_rsa_key):
@@ -28,7 +24,7 @@ def get_chacha_cipher(key, nonce, client_rsa_key):
     chacha_key = client_rsa.decrypt(enc_chacha_key)
     enc_chacha_nonce = b64decode(nonce)
     chacha_nonce = client_rsa.decrypt(enc_chacha_nonce)
-    return ChaCha20.new(key=chacha_key,nonce=chacha_nonce)
+    return ChaCha20.new(key=chacha_key, nonce=chacha_nonce)
 
 
 def decrypt(chacha_cipher, b64_enc_msg):
@@ -36,8 +32,8 @@ def decrypt(chacha_cipher, b64_enc_msg):
     msg = chacha_cipher.decrypt(enc_msg)
     return msg
 
-def get_secrets():
 
+def get_secrets():
     client_public_pem = """-----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyUj4x5XDuuOxmElL2bUw
     phdn47WZqiqbLjPeAOfuTR7zb2eruBwR18CwM6EulP8MxX4LZ4AvYdJm7wtAK1r8
@@ -49,7 +45,7 @@ def get_secrets():
     -----END PUBLIC KEY-----
     """
 
-    server_public_pem ="""-----BEGIN PUBLIC KEY-----
+    server_public_pem = """-----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvHNoni0u2/4abTi/MrF3
     BCWD9YHVdK60IWXCG6SF/WoeNb4YvQOXfXgXLRihGbY2DKdUES8RbjsL91SYr8t6
     21VHSfVgSBLw3QNHTaEYsl+1YR3AXMq0iMoz2kenV5+bNDUovOu2xYp24L1BgRRH
@@ -68,11 +64,11 @@ def get_secrets():
     e = client_public_key.e
     p = 159404777317476598043833178829408141896595778014557284797443841665042065054173953680872406059153310676902537582449826923738167363578779957536205081222024808570638226564805133728379927593050350788972669349583683584438777461271652345687255649214874087307244023063835882294409941266821542734131323641753310185843
     q = 159404777317476598043833178829408141896595778014557284797443841665042065054173953680872406059153310676902537582449826923738167363578779957536205081222024808570638226564805133728379927593050350788972669349583683584438777461271652345687255649214874087307244023063835882294409941266821542734131323641753310185913
-    d = inverse(e, (p-1) * (q-1))
+    d = inverse(e, (p - 1) * (q - 1))
 
     client_rsa_key = RSA.construct((n, e, d, p, q))
 
-    client_chacha_cipher = get_chacha_cipher( 
+    client_chacha_cipher = get_chacha_cipher(
         "jENMxKRtxTcxw04KB87U59E80PpY6wXPtMzqRmMwYQrDh7mG8l8aDfVaeQQAdsr6BRYfJwcAmwn9Ge/aIpBqcMXPa1Yy5mm4MJlDTpg/PVpcSMuju6F65NvVKO2i/vo/qVEB6ncydqR6rrCeUUI/LyBYBwBVFu57RInuY/EGjN5RjTl0QbZkid4/T4djq73t4EUtHG3rhhT+PLPMGakDLSwVJ7Fi0C4WCDsubxsB4FLqxtQCB0CpHwInVOfywTHB9PfIDYTy6WdU8vDOQ5HjCXwu1MQHBkmxmvmvekIg6wCBY0oSzth2pJNsi5P5k1X4m1B13puKOoKxryuLinfzZg==",
         "QhQnLF6//p2j4EMulJgAydb2bunyULWkA2bp6rfmEOa+ENOYBwbYyfU6EpU2w43R1npmoIftZXQbrIf/wMyewJOXQbSKBs8j0Fs06rcUdLzdTQD8tG8B1peftHv5GxHagATQupxYJqY5K7DMlvXN9m4kxSU/CBjx36q+N+EQ/MD7uJ1o3o5CN7fw9k06MX4iZSuruzvI4aw/J5P7UZQTB58fsKIB2BJWQyQ9jmJSlnO9AAvoL21ZRTjXYPgh0HjEug1budK69/jkT8I/HN1SksSMUKRZt2LvQPpDzhlQeBsGGxIPQEDDZxT9065NBiMAvvgxjj5kpaWp2G04FGz20g==",
         client_rsa_key
@@ -82,12 +78,12 @@ def get_secrets():
         lines = f.readlines()
 
     ciphers = [
-        'ARC4', 
-        'Salsa20', 
-        'AES in CBC-mode', 
-        'AES in CTR-mode', 
-        'Blowfish in ECB-mode', 
-        'Blowfish in EAX-mode', 
+        'ARC4',
+        'Salsa20',
+        'AES in CBC-mode',
+        'AES in CTR-mode',
+        'Blowfish in ECB-mode',
+        'Blowfish in EAX-mode',
         'PKCS OAEP with RSA 2048',
         'El Gamal',
         'XOR'
@@ -99,7 +95,7 @@ def get_secrets():
 
     i = 54
     decrypt(client_chacha_cipher, lines[i])
-    i +=2
+    i += 2
     while i < len(lines):
         i += 5
         menu = decrypt(client_chacha_cipher, lines[i])
@@ -140,4 +136,3 @@ def get_secrets():
             i += 2
 
     return secrets
-       
