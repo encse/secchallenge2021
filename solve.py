@@ -8,6 +8,7 @@ from xtermcolor import colorize
 
 # logging.basicConfig(level=logging.DEBUG)
 title = 'Secchallenge 2021'
+print(colorize(Figlet(font="binary", width=200).renderText(title), ansi=5))
 print(colorize(Figlet(font="banner3-D", width=200).renderText(title), ansi=4))
 print(colorize(Figlet(font="binary", width=200).renderText(title), ansi=5))
 
