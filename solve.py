@@ -1,8 +1,11 @@
 import importlib
 import os
+import logging
+
 from pyfiglet import Figlet
 from xtermcolor import colorize
 
+# logging.basicConfig(level=logging.DEBUG)
 
 print(Figlet(font="thin", width=200).renderText('secchallenge 2021'))
 
