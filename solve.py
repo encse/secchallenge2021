@@ -2,25 +2,28 @@ import importlib
 import os
 import logging
 
+import sys
 from pyfiglet import Figlet
 from xtermcolor import colorize
 
 # logging.basicConfig(level=logging.DEBUG)
+title = 'Secchallenge 2021'
+print(colorize(Figlet(font="banner3-D", width=200).renderText(title), ansi=4))
+print(colorize(Figlet(font="binary", width=200).renderText(title), ansi=5))
 
-print(Figlet(font="thin", width=200).renderText('secchallenge 2021'))
+rootDir = sys.argv[1] if len(sys.argv) > 1 else '.'
 
-for root, subFolders, files in os.walk('.'):
+for root, subFolders, files in os.walk(rootDir):
     if root.endswith('/solution') and 'solve.py' in files:
-        module_name = '/'.join(root.split('/')[2:4])
-        python_module_name = root.split('/')[1:]
-        python_module_name.append('solve')
 
-        print(module_name)
+        python_module_name = root.replace('./', '').split('/')
+        print('/'.join(python_module_name))
+        python_module_name.append('solve')
         cwd = os.getcwd()
         os.chdir(root)
         try:
 
-            module = importlib.import_module('.'.join(python_module_name))
+            module = importlib.import_module('.'.join(python_module_name), 'secchallenge')
             if 'solve' in dir(module):
                 flag = module.solve()
                 print(colorize(flag, ansi=2))

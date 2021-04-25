@@ -13,9 +13,6 @@ def try_to_solve():
 
         points = []
         for line in lines:
-            match = [h for h in horoscopes if line == h]
-            if len(match) != 1:
-                print(match)
             points.append(horoscopes.index(line))
         points.reverse()
 
