@@ -8,7 +8,7 @@ import pwn
 from itertools import cycle
 import re
 
-from secrets_from_export import get_secrets, Cipher
+from .secrets_from_export import get_secrets, Cipher
 
 
 # flag{1f_u_kn0w_th3_str34m...}
@@ -208,16 +208,16 @@ def solve_el_gamal(conn):
     # a fixed y is used for the enryption, although it should be randomly selected.
     # we don't know any parameters of el gamal, but we know that
     #   get_c2(msg) = (s * msg) % q
-    # from this: 
-    #   s = get_c2(1) 
+    # from this:
+    #   s = get_c2(1)
     # we can also compute q with incrementing a probe value (r)
-    # when r*s != get_c2(r) the mod operation triggered and we found 
+    # when r*s != get_c2(r) the mod operation triggered and we found
     #   q = r * s - rs
     # now compute:
-    #   s_inv = pow(s, -1, q), 
-    # and decrypt the secret with: 
+    #   s_inv = pow(s, -1, q),
+    # and decrypt the secret with:
     #   flag = (s_inv * secret) % q
-    
+
 
     secrets = get_secrets()
     secret = secrets[Cipher.El_Gamal.value]
@@ -227,7 +227,7 @@ def solve_el_gamal(conn):
         select_submenu(conn, str(Cipher.El_Gamal.value))
         encrypt_and_send(conn, int.to_bytes(r, 64, 'big'))
         recv_and_decrypt(conn)
-        
+
         # this is constant
         c1 = int.from_bytes(recv_and_decrypt(conn), 'big')
 
@@ -276,7 +276,7 @@ def solve_aes_cbc(conn):
     for i in (range(number_of_blocks)):
         blocks[i] = secret[i * BLOCK_SIZE: (i + 1) * BLOCK_SIZE]
 
-    for z in range(len(blocks)-1):  
+    for z in range(len(blocks)-1):
         for itera in range (1,17):
             for v in range(256):
                 cipherfake[-itera] = v
@@ -294,7 +294,7 @@ def solve_aes_cbc(conn):
                     break
 
             for w in range(1,current+1):
-                cipherfake[-w] = plaintext[-w]^itera+1^blocks[z][-w] 
+                cipherfake[-w] = plaintext[-w]^itera+1^blocks[z][-w]
 
 
         for i in range(16):
@@ -322,7 +322,7 @@ def solve_aes_cbc(conn):
     #             encrypt_and_send(conn, 'invalid API key')
     #             recv_and_decrypt(conn)
     #             break
-            
+
 
 
     #         # for itera in range (1,17): #the length of each block is 16. I start by one because than I use its in a counter
@@ -339,7 +339,7 @@ def solve_aes_cbc(conn):
 
 
     check_flag(message)
-    
+
 
 solve(conn)
 solve_el_gamal(conn)

