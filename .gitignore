@@ -13,3 +13,5 @@ crysys.rep
 x.x
 crysys.gpr
 pwn/rougelike/lib
+__pycache__
+tmp

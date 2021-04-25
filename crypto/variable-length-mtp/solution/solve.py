@@ -1,13 +1,35 @@
-from random import randint
 import os
+import zipfile
+
 
 class Encrypted:
     def __init__(self, enc, key_indices):
         self.enc = enc
         self.key_indices = key_indices
         self.length = len(enc)
-    
-    
+
+
+def solve():
+    prepare_input()
+
+    enc1 = parse('tmp/enc1')
+    enc2 = parse('tmp/enc2')
+
+    res = guess(13137, enc1, enc2)
+    if res is not None:
+        return res
+
+    for i in range(enc1.length):
+        res = guess(i, enc1, enc2)
+        if res is not None:
+            return res
+
+
+def prepare_input():
+    if not os.path.exists('tmp/enc1') or os.path.exists('tmp/enc2'):
+        with zipfile.ZipFile('../input/variable_length_mtp.zip', 'r') as zip_ref:
+            zip_ref.extractall('tmp')
+
 
 def parse(filn):
     with open(filn, "rb") as f:
@@ -15,7 +37,7 @@ def parse(filn):
         ind = 0
         enc = bytearray()
         keys = bytearray()
-        while (ind < len(data)):
+        while ind < len(data):
             block_len = data[ind]
             ind += 1
             for i in range(0, block_len):
@@ -27,7 +49,7 @@ def parse(filn):
 
 def guess(flag_start, enc1, enc2):
     if flag_start + 4 >= enc1.length:
-        return 
+        return
 
     key1 = [-1] * 128
     key2 = [-1] * 128
@@ -54,27 +76,27 @@ def guess(flag_start, enc1, enc2):
                 key1[key_index1] = enc1.enc[i] ^ enc2.enc[i] ^ key2[key_index2]
                 found = True
                 f += 1
-                
+
     st = ''
     for i in range(70):
         key_index1 = enc1.key_indices[flag_start + i]
         k = key1[key_index1]
-        if (k == -1):
-            st += '?'
+        if k == -1:
+            return None
         else:
             p = enc1.enc[flag_start + i] ^ k
-            if p >= 20 and p < 128:
+            if 20 <= p < 128:
                 st += chr(p)
+                if chr(p) == '}':
+                    return st
             else:
-                st += '@' 
-    # if not '@' in st:
-    print(flag_start, st)
+                return None
 
-enc1 = parse('enc1')
-enc2 = parse('enc2')
+    return None
 
 
-guess(13137, enc1, enc2)
+if __name__ == "__main__":
+    print(solve())
 
-# for i in range(enc1.length):
-#     guess(i, enc1, enc2)
+
+

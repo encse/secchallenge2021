@@ -1,12 +1,8 @@
 import os
 
-import blindspin
-import sys
-from pyfiglet import Figlet
-from xtermcolor import colorize
 
-
-def get_flag(data):
+def solve():
+    data = open(os.path.join(os.path.dirname(__file__), '../input/yarr'), "rb").read()
     pattern = b'cd21{'
     pattern_len = len(pattern)
 
@@ -23,20 +19,8 @@ def get_flag(data):
             res = res.replace("#", "")
             return res
 
-    return ''
+    raise Exception('not found')
 
 
-def main():
-    print(Figlet(font="thin", width=200).renderText("Celestial yarr harr harr"))
-
-    data = open(os.path.join(os.path.dirname(__file__), '../input/yarr'), "rb").read()
-
-    sys.stdout.write('🔍 Searching for key ')
-    with blindspin.spinner():
-        res = get_flag(data)
-
-
-    print('\n\n🏁 Your flag is: ' + colorize(res, ansi=2))
-
-
-main()
+if __name__ == "__main__":
+    print(solve())
