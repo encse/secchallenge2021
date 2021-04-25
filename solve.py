@@ -25,7 +25,7 @@ for root, subFolders, files in os.walk(rootDir):
 
             module = importlib.import_module('.'.join(python_module_name), 'secchallenge')
             if 'solve' in dir(module):
-                flag = module.solve()
+                flag = module.solve().strip()
                 print(colorize(flag, ansi=2))
         except Exception as e:
             print(e)
