@@ -1,17 +1,17 @@
 import json
-
 import requests
 import sys
-from itertools import cycle
 import pwn
 import re
+from itertools import cycle
 
-from secrets_from_export import get_secrets, Cipher
+
+from cipher import Cipher
 from cryptoclient import CryptoClient
+from secret_parser import get_secrets_by_cipher
 
 
 def xor(data, key):
-
     if type(data) == str:
         data = data.encode('utf-8')
 
@@ -57,21 +57,22 @@ def get_xor_key_flag(client):
 def get_xor_flag(ciphertext, client):
     p = '\x00' * 200
     b = client.encrypt(Cipher.XOR, p)
-    return collect_flag('XOR', xor(ciphertext, xor(b, p)))
+    key = xor(b, p)  # the key is constant, we can decrypt the ciphertext
+    return collect_flag('XOR', xor(ciphertext, key))
 
 
 def get_salsa_flag(ciphertext, client):
     p = '\x00' * 200
     b = client.encrypt(Cipher.Salsa20, p)
-    # in some cases this is (m x k) x (p x k) x p == m
-    return collect_flag('Salsa20', xor(ciphertext, xor(b, p)))
+    key = xor(b, p)  # the key is reused, we can decrypt the ciphertext
+    return collect_flag('Salsa20', xor(ciphertext, key))
 
 
 def get_arc4_flag(ciphertext, client):
     p = '\x00' * 200
     b = client.encrypt(Cipher.ARC4, p)
-    # in some cases this is (m x k) x (p x k) x p == m
-    return collect_flag('ARC4', xor(ciphertext, xor(b, p)))
+    key = xor(b, p)  # the key is reused, we can decrypt the ciphertext
+    return collect_flag('ARC4', xor(ciphertext, key))
 
 
 def get_el_gamal_flag(client: CryptoClient, ciphertext1, ciphertext2):
@@ -171,17 +172,17 @@ def get_aes_cbc_flag(client: CryptoClient, ciphertext: str):
 
 
 def solve():
-    secrets = get_secrets()
+    secrets_by_cipher = get_secrets_by_cipher()
     flags = []
     with pwn.remote('challenges.crysys.hu', 5003) as conn:
         client = CryptoClient(conn)
-        flags.append(('secret1', get_plaintext_flag(secrets[Cipher.Blowfish_EAX][0])))
+        flags.append(('secret1', get_plaintext_flag(secrets_by_cipher[Cipher.Blowfish_EAX][0])))
         flags.append(('secret2', get_xor_key_flag(client)))
-        flags.append(('secret3', get_xor_flag(secrets[Cipher.XOR][1], client)))
-        flags.append(('secret4', get_salsa_flag(secrets[Cipher.Salsa20][1], client)))
-        flags.append(('secret5', get_arc4_flag(secrets[Cipher.ARC4][1], client)))
-        flags.append(('secret6', get_el_gamal_flag(client, secrets[Cipher.El_Gamal][1], secrets[Cipher.El_Gamal][2])))
-        flags.append(('secret7', get_aes_cbc_flag(client, secrets[Cipher.AES_CBC][1])))
+        flags.append(('secret3', get_xor_flag(secrets_by_cipher[Cipher.XOR][1], client)))
+        flags.append(('secret4', get_salsa_flag(secrets_by_cipher[Cipher.Salsa20][1], client)))
+        flags.append(('secret5', get_arc4_flag(secrets_by_cipher[Cipher.ARC4][1], client)))
+        flags.append(('secret6', get_el_gamal_flag(client, secrets_by_cipher[Cipher.El_Gamal][1], secrets_by_cipher[Cipher.El_Gamal][2])))
+        flags.append(('secret7', get_aes_cbc_flag(client, secrets_by_cipher[Cipher.AES_CBC][1])))
 
     rsp = requests.post("https://oracle.secchallenge.crysys.hu/api/secrets", flags).text
     return json.loads(rsp)['flag']
