@@ -6,7 +6,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Util.number import inverse
 
 
-class Cipher(Enum):
+class Cipher(object):
     ARC4 = 0
     Salsa20 = 1
     AES_CBC = 2
@@ -45,18 +45,7 @@ def get_secrets():
     -----END PUBLIC KEY-----
     """
 
-    server_public_pem = """-----BEGIN PUBLIC KEY-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvHNoni0u2/4abTi/MrF3
-    BCWD9YHVdK60IWXCG6SF/WoeNb4YvQOXfXgXLRihGbY2DKdUES8RbjsL91SYr8t6
-    21VHSfVgSBLw3QNHTaEYsl+1YR3AXMq0iMoz2kenV5+bNDUovOu2xYp24L1BgRRH
-    ie6+/WGBUvRzZtUTKTMtGcigIMZk2G04k9Rp4CED3F2uYu4fErQvaXLhYzDxk8gG
-    PQ1uWUagoS9Hy4eIUWhMIlk4bIOfDEYYO/Ff3CK5V/bX8K95fn2/hmfZq5Y85oWE
-    tNUpd6E3EMdgjZkR/D+E/EMZyZOD4oBPdkRskVJSAlInVJxCRYUSKEtj4GZJyFUV
-    vwIDAQAB
-    -----END PUBLIC KEY-----
-    """
     client_public_key = RSA.import_key(client_public_pem)
-    server_public_key = RSA.import_key(server_public_pem)
 
     # https://www.alpertron.com.ar/ECM.HTM
 
@@ -76,18 +65,6 @@ def get_secrets():
 
     with open("exported_data.txt", "r") as f:
         lines = f.readlines()
-
-    ciphers = [
-        'ARC4',
-        'Salsa20',
-        'AES in CBC-mode',
-        'AES in CTR-mode',
-        'Blowfish in ECB-mode',
-        'Blowfish in EAX-mode',
-        'PKCS OAEP with RSA 2048',
-        'El Gamal',
-        'XOR'
-    ]
 
     secrets = []
     for cipher_index in range(9):

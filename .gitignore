@@ -15,3 +15,5 @@ crysys.gpr
 pwn/rougelike/lib
 __pycache__
 tmp
+secchallenge/reverse/serialhacker/solution/obj
+secchallenge/reverse/xenia-laurencia-maria/solution/obj

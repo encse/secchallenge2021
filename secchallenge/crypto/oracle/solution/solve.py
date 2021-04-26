@@ -1,3 +1,7 @@
+import json
+
+import requests
+import sys
 from itertools import cycle
 import pwn
 import re
@@ -7,6 +11,7 @@ from .cryptoclient import CryptoClient
 
 
 def xor(data, key):
+
     if type(data) == str:
         data = data.encode('utf-8')
 
@@ -17,10 +22,19 @@ def xor(data, key):
 
 
 def collect_flag(flags, maybe_flag):
-    if b'flag' in maybe_flag:
-        st = maybe_flag.decode('utf-8')
-        flag = re.search(r'flag{[^}]*}', st).group()
-        flags.append(flag)
+
+    try:
+        if type(maybe_flag) == bytes:
+            maybe_flag = maybe_flag.decode('utf-8')
+    except UnicodeDecodeError:
+        return False
+
+    m = re.search(r'flag{[^}]*}', maybe_flag)
+    if m:
+        flags.append(m.group())
+        return True
+    else:
+        return False
 
 
 def get_el_gamal_flag(flags: list[str], client: CryptoClient):
@@ -38,11 +52,11 @@ def get_el_gamal_flag(flags: list[str], client: CryptoClient):
     #   flag = (s_inv * secret) % q
 
     secrets = get_secrets()
-    secret = secrets[Cipher.El_Gamal.value]
+    secret = secrets[Cipher.El_Gamal]
 
     def get_c2(r: int) -> int:
         client.select_menu('e')
-        client.select_submenu(str(Cipher.El_Gamal.value))
+        client.select_submenu(str(Cipher.El_Gamal))
         client.encrypt_and_send(int.to_bytes(r, 64, 'big'))
         client.recv_and_decrypt()
 
@@ -70,43 +84,58 @@ def get_el_gamal_flag(flags: list[str], client: CryptoClient):
 
 def get_aes_cbc_flag(flags: list[str], client: CryptoClient):
     secrets = get_secrets()
-    secret = secrets[Cipher.AES_CBC.value][1]
+    secret = secrets[Cipher.AES_CBC][1]
 
     cipherfake = [0] * 16
     plaintext = [0] * 16
-    current = 0
-    message = ""
 
     block_size = 16
-    number_of_blocks = int(len(secret) / block_size)
-    blocks = [[]] * number_of_blocks
-    for i in (range(number_of_blocks)):
+    block_count = int(len(secret) / block_size)
+    blocks = [[]] * block_count
+    for i in (range(block_count)):
         blocks[i] = secret[i * block_size: (i + 1) * block_size]
 
-    for z in range(len(blocks) - 1):
-        for itera in range(1, 17):
-            for v in range(256):
-                cipherfake[-itera] = v
+    alphabet = '0123456789{}_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+    for i in range(256):
+        if chr(i) not in alphabet:
+            alphabet += chr(i)
+
+    message = []
+    for block_index in range(len(blocks) - 1):
+        message += ['.'] * block_size
+        for i in range(1, 17):
+            for b in range(256):
+                cipherfake[-i] = ord(alphabet[b]) ^ i ^ blocks[block_index][-i]
 
                 client.select_menu('d')
-                client.select_submenu(str(Cipher.AES_CBC.value))
-                client.encrypt_and_send(bytes(cipherfake) + blocks[z + 1])
+                client.select_submenu(str(Cipher.AES_CBC))
+                client.encrypt_and_send(bytes(cipherfake) + blocks[block_index + 1])
                 x = client.recv_and_decrypt()
+                plaintext[-i] = ord(alphabet[b])
+
+                if 32 <= plaintext[-i] < 127:
+                    ch = chr(plaintext[-i])
+                else:
+                    ch = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[b % 10]
+                message[(block_index + 1) * block_size - i] = ch
+                sys.stdout.write("".join(message))
+                sys.stdout.write(f"\033[{len(message)}D")
+                sys.stdout.flush()
+
                 if b'API' in x:
-                    current = itera
-                    plaintext[-itera] = v ^ itera ^ blocks[z][-itera]
                     client.encrypt_and_send('invalid API key')
                     client.recv_and_decrypt()
-                    print(chr(plaintext[-itera]))
                     break
 
-            for w in range(1, current + 1):
-                cipherfake[-w] = plaintext[-w] ^ itera + 1 ^ blocks[z][-w]
+            if not 32 <= ord(message[(block_index + 1) * block_size - i]) < 127:
+                message[(block_index + 1) * block_size - i] = ' '
 
-        for i in range(16):
-            message += chr(int(plaintext[i]))
+            for w in range(1, i + 1):
+                cipherfake[-w] = plaintext[-w] ^ i + 1 ^ blocks[block_index][-w]
 
-    collect_flag(flags, message)
+        if collect_flag(flags, ''.join(message)):
+            break
 
 
 def get_arbitrary_flags(flags: list[str], client: CryptoClient):
@@ -130,13 +159,20 @@ def get_arbitrary_flags(flags: list[str], client: CryptoClient):
 
 
 def solve():
+    flags = []
+
     with pwn.remote('challenges.crysys.hu', 5003) as conn:
         client = CryptoClient(conn)
-
-        flags = []
         get_arbitrary_flags(flags, client)
         get_el_gamal_flag(flags, client)
         get_aes_cbc_flag(flags, client)
+
+    secrets = []
+    for i in range(len(flags)):
+        secrets.append(('secret' + str(i+1), flags[i]))
+
+    rsp = requests.post("https://oracle.secchallenge.crysys.hu/api/secrets", secrets).text
+    return json.loads(rsp)['flag']
 
 
 if __name__ == "__main__":
