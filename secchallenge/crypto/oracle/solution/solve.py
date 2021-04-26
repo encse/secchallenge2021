@@ -6,8 +6,8 @@ from itertools import cycle
 import pwn
 import re
 
-from .secrets_from_export import get_secrets, Cipher
-from .cryptoclient import CryptoClient
+from secrets_from_export import get_secrets, Cipher
+from cryptoclient import CryptoClient
 
 
 def xor(data, key):
@@ -21,7 +21,11 @@ def xor(data, key):
     return bytes([a ^ b for a, b in zip(data, cycle(key))])
 
 
-def collect_flag(flags, maybe_flag):
+def format_flag(title, flag):
+    return f'{title} flag:'.ljust(20) + flag
+
+
+def collect_flag(title, maybe_flag):
 
     try:
         if type(maybe_flag) == bytes:
@@ -31,13 +35,46 @@ def collect_flag(flags, maybe_flag):
 
     m = re.search(r'flag{[^}]*}', maybe_flag)
     if m:
-        flags.append(m.group())
-        return True
+        flag = m.group()
+        print(format_flag(title, flag))
+        return flag
     else:
-        return False
+        return None
 
 
-def get_el_gamal_flag(flags: list[str], client: CryptoClient):
+def get_plaintext_flag(plaintext):
+    flag = collect_flag('plaintext', plaintext)
+    return flag
+
+
+def get_xor_key_flag(client):
+    p = '\x00' * 200
+    b = client.encrypt(Cipher.XOR, p)
+    key = xor(b, p)
+    return collect_flag('XOR key', key)
+
+
+def get_xor_flag(ciphertext, client):
+    p = '\x00' * 200
+    b = client.encrypt(Cipher.XOR, p)
+    return collect_flag('XOR', xor(ciphertext, xor(b, p)))
+
+
+def get_salsa_flag(ciphertext, client):
+    p = '\x00' * 200
+    b = client.encrypt(Cipher.Salsa20, p)
+    # in some cases this is (m x k) x (p x k) x p == m
+    return collect_flag('Salsa20', xor(ciphertext, xor(b, p)))
+
+
+def get_arc4_flag(ciphertext, client):
+    p = '\x00' * 200
+    b = client.encrypt(Cipher.ARC4, p)
+    # in some cases this is (m x k) x (p x k) x p == m
+    return collect_flag('ARC4', xor(ciphertext, xor(b, p)))
+
+
+def get_el_gamal_flag(client: CryptoClient, ciphertext1, ciphertext2):
     # a fixed y is used for the enryption, although it should be randomly selected.
     # we don't know any parameters of el gamal, but we know that
     #   get_c2(msg) = (s * msg) % q
@@ -50,9 +87,6 @@ def get_el_gamal_flag(flags: list[str], client: CryptoClient):
     #   s_inv = pow(s, -1, q),
     # and decrypt the secret with:
     #   flag = (s_inv * secret) % q
-
-    secrets = get_secrets()
-    secret = secrets[Cipher.El_Gamal]
 
     def get_c2(r: int) -> int:
         client.select_menu('e')
@@ -73,27 +107,23 @@ def get_el_gamal_flag(flags: list[str], client: CryptoClient):
             q = r * s - rs
             s_inv = pow(s, -1, q)
 
-            en_msg = int.from_bytes(secret[2], 'big')
+            en_msg = int.from_bytes(ciphertext2, 'big')
             plaintext = (en_msg * s_inv) % q
 
-            collect_flag(flags, int.to_bytes(plaintext, 64, 'big'))
-            return
+            return collect_flag('ElGamal', int.to_bytes(plaintext, 64, 'big'))
 
         r += 1
 
 
-def get_aes_cbc_flag(flags: list[str], client: CryptoClient):
-    secrets = get_secrets()
-    secret = secrets[Cipher.AES_CBC][1]
-
+def get_aes_cbc_flag(client: CryptoClient, ciphertext: str):
     cipherfake = [0] * 16
     plaintext = [0] * 16
 
     block_size = 16
-    block_count = int(len(secret) / block_size)
+    block_count = int(len(ciphertext) / block_size)
     blocks = [[]] * block_count
     for i in (range(block_count)):
-        blocks[i] = secret[i * block_size: (i + 1) * block_size]
+        blocks[i] = ciphertext[i * block_size: (i + 1) * block_size]
 
     alphabet = '0123456789{}_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -119,8 +149,9 @@ def get_aes_cbc_flag(flags: list[str], client: CryptoClient):
                 else:
                     ch = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[b % 10]
                 message[(block_index + 1) * block_size - i] = ch
-                sys.stdout.write("".join(message))
-                sys.stdout.write(f"\033[{len(message)}D")
+                line = format_flag('AES CBC', "".join(message))
+                sys.stdout.write(line)
+                sys.stdout.write(f"\033[{len(line)}D")
                 sys.stdout.flush()
 
                 if b'API' in x:
@@ -134,44 +165,25 @@ def get_aes_cbc_flag(flags: list[str], client: CryptoClient):
             for w in range(1, i + 1):
                 cipherfake[-w] = plaintext[-w] ^ i + 1 ^ blocks[block_index][-w]
 
-        if collect_flag(flags, ''.join(message)):
-            break
-
-
-def get_arbitrary_flags(flags: list[str], client: CryptoClient):
-    secrets = get_secrets()
-
-    for i in range(len(secrets)):
-        secret = secrets[i]
-
-        for maybe_flag in secret:
-            collect_flag(flags, maybe_flag)
-
-        if len(secret) == 2:
-            p = '\x00' * 200
-            b = client.encrypt(i, p)
-
-            # in some cases this is (p x k) x p == k
-            collect_flag(flags, xor(b, p))
-
-            # in some cases this is (m x k) x (p x k) x p == m
-            collect_flag(flags, xor(secret[1], xor(b, p)))
+        flag = collect_flag('AES CBC', ''.join(message))
+        if flag is not None:
+            return flag
 
 
 def solve():
+    secrets = get_secrets()
     flags = []
-
     with pwn.remote('challenges.crysys.hu', 5003) as conn:
         client = CryptoClient(conn)
-        get_arbitrary_flags(flags, client)
-        get_el_gamal_flag(flags, client)
-        get_aes_cbc_flag(flags, client)
+        flags.append(('secret1', get_plaintext_flag(secrets[Cipher.Blowfish_EAX][0])))
+        flags.append(('secret2', get_xor_key_flag(client)))
+        flags.append(('secret3', get_xor_flag(secrets[Cipher.XOR][1], client)))
+        flags.append(('secret4', get_salsa_flag(secrets[Cipher.Salsa20][1], client)))
+        flags.append(('secret5', get_arc4_flag(secrets[Cipher.ARC4][1], client)))
+        flags.append(('secret6', get_el_gamal_flag(client, secrets[Cipher.El_Gamal][1], secrets[Cipher.El_Gamal][2])))
+        flags.append(('secret7', get_aes_cbc_flag(client, secrets[Cipher.AES_CBC][1])))
 
-    secrets = []
-    for i in range(len(flags)):
-        secrets.append(('secret' + str(i+1), flags[i]))
-
-    rsp = requests.post("https://oracle.secchallenge.crysys.hu/api/secrets", secrets).text
+    rsp = requests.post("https://oracle.secchallenge.crysys.hu/api/secrets", flags).text
     return json.loads(rsp)['flag']
 
 
