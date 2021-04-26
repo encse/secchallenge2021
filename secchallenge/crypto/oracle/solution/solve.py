@@ -1,5 +1,5 @@
-import pwn
 from itertools import cycle
+import pwn
 import re
 
 from .secrets_from_export import get_secrets, Cipher
@@ -46,9 +46,7 @@ def get_el_gamal_flag(flags: list[str], client: CryptoClient):
         client.encrypt_and_send(int.to_bytes(r, 64, 'big'))
         client.recv_and_decrypt()
 
-        # this is constant
-        int.from_bytes(client.recv_and_decrypt(), 'big')
-
+        client.recv_and_decrypt()  # c1, this is constant
         c2 = int.from_bytes(client.recv_and_decrypt(), 'big')
 
         return c2
