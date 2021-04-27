@@ -4,8 +4,6 @@ import sys
 import pwn
 import re
 from itertools import cycle
-
-
 from cipher import Cipher
 from cryptoclient import CryptoClient
 from secret_parser import get_secrets_by_cipher

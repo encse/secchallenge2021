@@ -33,7 +33,7 @@ def is_char_at_less_than(cmd, ich, ch):
         "profession": "",
         "preferences": "",
     }).text
-    
+
     return 'Something went wrong' in resp
 
 

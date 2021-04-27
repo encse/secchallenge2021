@@ -1,7 +1,8 @@
 import math
 import pwn
 import re
-from .util import solve_instance, to_double, xs128p_backward
+from util import solve_instance, to_double, xs128p_backward
+
 
 def try_to_solve():
     with pwn.remote('challenges.crysys.hu', 5005) as conn:
