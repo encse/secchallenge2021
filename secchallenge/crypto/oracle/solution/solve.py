@@ -42,9 +42,12 @@ def collect_flag(title, maybe_flag):
         return None
 
 
-def get_plaintext_flag(plaintext):
-    flag = collect_flag('plaintext', plaintext)
-    return flag
+def get_plaintext_flag(secrets_by_cipher):
+    for secrets in secrets_by_cipher:
+        for secret in secrets:
+            flag = collect_flag('plaintext', secret)
+            if flag:
+                return flag
 
 
 def get_xor_key_flag(client):
@@ -176,7 +179,7 @@ def solve():
     flags = []
     with pwn.remote('challenges.crysys.hu', 5003) as conn:
         client = CryptoClient(conn)
-        flags.append(('secret1', get_plaintext_flag(secrets_by_cipher[Cipher.Blowfish_EAX][0])))
+        flags.append(('secret1', get_plaintext_flag(secrets_by_cipher)))
         flags.append(('secret2', get_xor_key_flag(client)))
         flags.append(('secret3', get_xor_flag(secrets_by_cipher[Cipher.XOR][1], client)))
         flags.append(('secret4', get_salsa_flag(secrets_by_cipher[Cipher.Salsa20][1], client)))

