@@ -36,9 +36,9 @@ class Terminal(object):
             rest={"SameSite": 'Strict'}, rfc2109=False))
 
     def run(self, cmd):
-        print(f'> {cmd}')
+        # print(f'> {cmd}')
         res = self.session.post(f'{url_base}/api/terminal', data=cmd).text
-        print(res)
+        # print(res)
         return res
 
 
