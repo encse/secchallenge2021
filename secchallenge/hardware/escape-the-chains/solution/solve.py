@@ -4,7 +4,8 @@ from http.cookiejar import Cookie
 import requests
 import urllib.parse
 
-url_base = 'https://escape-the-chains.secchallenge.crysys.hu'
+domain = 'escape-the-chains.secchallenge.crysys.hu'
+url_base = f'https://{domain}'
 
 
 class Terminal(object):
@@ -18,16 +19,16 @@ class Terminal(object):
     def set_wiring(self, gnd, tx, rx):
         serial = json.loads(urllib.parse.unquote(self.session.cookies.get('serial')))
         serial['wiring'] = {
-            "wire-gnd":f'devicepin-{gnd}',
-            "wire-tx":f'devicepin-{tx}',
-            "wire-rx":f'devicepin-{rx}'
+            "wire-gnd": f'devicepin-{gnd}',
+            "wire-tx": f'devicepin-{tx}',
+            "wire-rx": f'devicepin-{rx}'
         }
 
         self.session.cookies.set_cookie(Cookie(
             version=0, name="serial",
             value=urllib.parse.quote(json.dumps(serial)),
             port=None, port_specified=False,
-            domain='escape-the-chains.secchallenge.crysys.hu',
+            domain=domain,
             domain_specified=True, domain_initial_dot=False,
             path="/", path_specified=True, secure=False,
             expires=None, discard=True,
@@ -36,13 +37,12 @@ class Terminal(object):
 
     def run(self, cmd):
         print(f'> {cmd}')
-        res =  self.session.post(f'{url_base}/api/terminal', data=cmd).text
+        res = self.session.post(f'{url_base}/api/terminal', data=cmd).text
         print(res)
         return res
 
 
 def solve():
-
     terminal = Terminal()
 
     assert 'bin' in terminal.run('ls')
@@ -61,5 +61,3 @@ def solve():
 
 if __name__ == "__main__":
     print(solve())
-
-
