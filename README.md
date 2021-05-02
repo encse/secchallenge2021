@@ -1,7 +1,7 @@
 # CrySyS Security Challenge 2021
 
 Organized by the The Laboratory of Cryptography and System Security (CrySyS Lab) of 
-Budapest University of Technology and Economics it's an annual CTF event for students
+Budapest University of Technology and Economics, an annual CTF event for students
 and hobbyists.
 
 I collected my solutions here, mostly in python. I tried to automate as much as possible
