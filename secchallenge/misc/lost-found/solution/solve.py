@@ -39,7 +39,7 @@ def get_flag_2():
 
 
 def get_flag_3():
-    # flag 2 is hidden in the activity chart of a github user.
+    # flag 3 is hidden in the activity chart of a github user.
     # Check that the corresponding repo still exists:
     assert_exists('https://raw.githubusercontent.com/themrbigjack/code/'
                   '7123a754155e6cc1fe12c1f1a0e94264a42a1ab0/flag.c0r3dump')

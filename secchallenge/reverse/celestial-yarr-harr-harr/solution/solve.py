@@ -2,6 +2,7 @@ import os
 
 
 def solve():
+    # the flag is somewhere in the inputfile xor-ed with a single byte value
     data = open(os.path.join(os.path.dirname(__file__), '../input/yarr'), "rb").read()
     pattern = b'cd21{'
     pattern_len = len(pattern)
