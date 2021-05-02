@@ -3,7 +3,7 @@ flickr-username=linterr
 6AV-Wh+X-mP#YLMa
 https://www.flickr.com/people/191794730@N08
 https://github.com/themrbigjack
-1nE3r1n6>
+1nE3r1n6}
 
 https://github.com/themrbigjack/code/blob/master/flag.c0r3dump
 sike
@@ -14,7 +14,7 @@ https://www.gpsvisualizer.com/map_input
 latitude,longitude,circle_radius
 47.46813611111,19.07568611111,0.55 km
 47.46983055556,19.07004166667,0.45 km
-47.4804,19.06781666667,1 km 
+47.4804,19.06781666667,1 km
 
 
 

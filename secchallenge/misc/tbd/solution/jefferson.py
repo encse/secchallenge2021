@@ -1,7 +1,6 @@
 # https://github.com/sviehb/jefferson/
 
 import lzma
-import argparse
 import struct
 import stat
 import os
@@ -491,7 +490,6 @@ def dump_fs(fs, target):
 
 
 def extract(filesystem, dest_path):
-
     if os.path.exists(dest_path):
         raise Exception("Destination path already exists!")
     else:
