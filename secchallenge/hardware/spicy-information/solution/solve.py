@@ -3,7 +3,7 @@ def solve():
     emulator = Emulator(open('input.csv', 'r').readlines())
     emulator.run()
 
-    # you can use binwalk on 'mem' then extract it for examination
+    # you can use binwalk on 'mem' for further examination
 
     st = ''
     for location in flag_locations():
@@ -16,7 +16,6 @@ def flag_locations():
     # this is taken from the flagreader binary found in the extracted 'mem'
 
     # undefined4 main(void)
-    #
     # {
     #   int __fd;
     #   __off_t _Var1;
@@ -45,6 +44,8 @@ def flag_locations():
     #       );
     #   return 0;
     # }
+
+    # it reading the following addresses of 'mem':
 
     st = "bc 0b 00 00 27 0c 00 00 4b 0b 00 00 0d 0b 00 00 e2 08 00 00 be 0b 00 00 43 0c 00 00 96 0b 00 00 " \
          "f0 06 00 00 38 0c 00 00 27 0c 00 00 71 0c 00 00 38 0c 00 00 c7 0a 00 00 71 0c 00 00 67 0b 00 00 " \

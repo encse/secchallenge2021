@@ -55,7 +55,7 @@ def solve():
 
     assert 'factory-reset' in terminal.run('help')
     t = terminal.run('factory-reset')
-    flag = re.search(r'cd21\{.*\}', t).group()
+    flag = re.search(r'cd21{.*}', t).group()
     return flag
 
 
