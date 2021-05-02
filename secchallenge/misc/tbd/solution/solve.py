@@ -7,7 +7,7 @@ def solve():
         extract('../input/finalfinalversionforrealthistime', 'tmp')
 
     with open('tmp/fs_1/flags/flag404', 'rt') as f:
-        print(f.readlines()[5])
+        return f.readlines()[5]
 
 
 if __name__ == "__main__":

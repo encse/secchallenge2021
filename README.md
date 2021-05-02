@@ -6,6 +6,9 @@ Budapest University of Technology and Economics.
 I collected my solutions here, mostly in python. I tried to automate as much as possible
 but it doesn't always make sense, especially when it comes to the `reverse` or `misc` problems.
 
+![](img.png)
+
+
 ## Install and run 
 
 ```
